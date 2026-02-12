@@ -146,7 +146,9 @@ namespace Game.Gameplay
             if (currentLevel == null) return;
 
             GridManager.Instance.GenerateGrid(currentLevel);
-
+            // random at each start, enable if needed
+            //ScrambleNodes();
+            
             sourceNodes = GridManager.Instance.GetSourceNodes();
             goalNodes = GridManager.Instance.GetGoalNodes();
 
@@ -173,6 +175,27 @@ namespace Game.Gameplay
 
             if (autoCheckWinCondition && isLevelActive)
                 CheckWinConditionDelayed();
+        }
+
+        // ADD THIS METHOD inside LevelManager.cs
+        private void ScrambleNodes()
+        {
+            // Get all nodes from the GridManager
+            Dictionary<Vector2Int, HexNode> gridNodes = GridManager.Instance.GetGridNodes();
+
+            foreach (var node in gridNodes.Values)
+            {
+                // Skip nodes that shouldn't move (Sources, or locked tiles)
+                if (!node.CanRotate) continue;
+
+                // Pick a random rotation 0-5
+                int randomRot = Random.Range(0, 6);
+
+                // Apply it instantly
+                node.SetInitialRotation(randomRot);
+            }
+
+            Debug.Log("[LevelManager] Level Scrambled!");
         }
 
         #endregion

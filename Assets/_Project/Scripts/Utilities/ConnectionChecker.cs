@@ -13,51 +13,35 @@ namespace Game.Utilities
     {
         #region Neighbors
 
-        // Get neighbor position in specified hex direction (handles odd/even row offset)
-        // Returns The grid position of the neighbor in given direction.
+        // Get neighbor grid position in specified hex direction (handles odd/even row offset)
         public static Vector2Int GetNeighborPosition(Vector2Int gridPos, HexDirection direction)
         {
-            bool isOddRow = gridPos.y % 2 == 1;
             int x = gridPos.x;
             int y = gridPos.y;
+            bool isOddRow = (y % 2 != 0); // Use this if your layout shifts every other row
 
-            // Even rows: standard offset
-            // Odd rows: adjusted offset (shifted right)
             switch (direction)
             {
                 case HexDirection.Top:
-                    return new Vector2Int(x, y + 1);
-
-                case HexDirection.TopRight:
-                    return isOddRow 
-                        ? new Vector2Int(x, y + 1) 
-                        : new Vector2Int(x + 1, y + 1);
-
-                case HexDirection.BottomRight:
-                    return isOddRow 
-                        ? new Vector2Int(x, y - 1) 
-                        : new Vector2Int(x + 1, y - 1);
-
+                    return new Vector2Int(x, y + 2); // Exact Top
                 case HexDirection.Bottom:
-                    return new Vector2Int(x, y - 1);
+                    return new Vector2Int(x, y - 2); // Exact Bottom
 
-                case HexDirection.BottomLeft:
-                    return isOddRow 
-                        ? new Vector2Int(x - 1, y - 1) 
-                        : new Vector2Int(x - 1, y - 1);
-
+                // For staggered brick layouts, diagonal X depends on if the row is Odd/Even
+                case HexDirection.TopRight:
+                    return isOddRow ? new Vector2Int(x + 1, y + 1) : new Vector2Int(x, y + 1);
                 case HexDirection.TopLeft:
-                    return isOddRow 
-                        ? new Vector2Int(x - 1, y + 1) 
-                        : new Vector2Int(x - 1, y + 1);
+                    return isOddRow ? new Vector2Int(x, y + 1) : new Vector2Int(x - 1, y + 1);
+                case HexDirection.BottomRight:
+                    return isOddRow ? new Vector2Int(x + 1, y - 1) : new Vector2Int(x, y - 1);
+                case HexDirection.BottomLeft:
+                    return isOddRow ? new Vector2Int(x, y - 1) : new Vector2Int(x - 1, y - 1);
 
-                default:
-                    return gridPos;
+                default: return gridPos;
             }
         }
 
         // Get all six neighbor positions for a grid position
-        // Rreturns Array of 6 Vector2Int positions representing all neighbors.
         public static Vector2Int[] GetAllNeighborPositions(Vector2Int gridPos)
         {
             Vector2Int[] neighbors = new Vector2Int[6];
@@ -107,7 +91,7 @@ namespace Game.Utilities
 
         #region Angles
 
-        // Get angle in degrees for hex direction (0°, 60°, 120°, 180°, 240°, 300°)
+        // Get angle in degrees for hex direction (0ï¿½, 60ï¿½, 120ï¿½, 180ï¿½, 240ï¿½, 300ï¿½)
         public static float GetDirectionAngle(HexDirection direction)
         {
             return HexDirectionHelper.GetAngle(direction);

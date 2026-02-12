@@ -64,8 +64,10 @@ namespace Game.Utilities
 
                     // Validate bidirectional connection
                     HexDirection oppositeDirection = ConnectionChecker.GetOppositeDirection(direction);
+                    bool neighborHasOpposite = neighborNode.HasConnectionInDirection(oppositeDirection);
                     
-                    if (neighborNode.HasConnectionInDirection(oppositeDirection))
+                    
+                    if (neighborHasOpposite)
                     {
                         visited.Add(neighborNode);
                         queue.Enqueue(neighborNode);
@@ -73,6 +75,7 @@ namespace Game.Utilities
                 }
             }
 
+            Debug.Log($"[PathFinder] BFS complete. Total powered nodes: {visited.Count}");
             return visited;
         }
 

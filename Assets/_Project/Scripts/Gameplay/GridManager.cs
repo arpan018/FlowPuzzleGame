@@ -1,8 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections.Generic;
-using Game.Core;
 using Game.Data;
-using Game.Utilities;
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -69,7 +67,7 @@ namespace Game.Gameplay
             if (_instance == null)
             {
                 _instance = this;
-                DontDestroyOnLoad(gameObject);
+                //DontDestroyOnLoad(gameObject);
                 InitializeGridContainer();
             }
             else if (_instance != this)
@@ -140,13 +138,27 @@ namespace Game.Gameplay
             CenterGridOnScreen();
         }
 
-        // Calculate hex world position with odd-row offset
+        // Calculate hex world position - flat-top hex, corner-to-corner contact
         private Vector3 CalculateHexPosition(int gridX, int gridY)
         {
-            float xOffset = gridY % 2 == 1 ? (cellSize + gridSpacing) * 0.5f : 0;
-            float x = gridX * (cellSize + gridSpacing) + xOffset;
-            float y = gridY * (cellSize + gridSpacing) * 0.866f; // sqrt(3)/2
-
+            // Flat-top hex with corner-to-corner contact:
+            // Horizontal spacing = 1.5 × cellSize (distance between column centers)
+            // Vertical spacing = 0.425 × cellSize (half of 0.85)
+            // Odd-row offset = 0.75 × cellSize (half of horizontal spacing)
+            
+            float horizontalSpacing = cellSize * 1.5f + gridSpacing;
+            float verticalSpacing = cellSize * 0.425f + gridSpacing;
+            
+            // Base position
+            float x = gridX * horizontalSpacing;
+            float y = gridY * verticalSpacing;
+            
+            // Odd-row offset: shift right by half the horizontal spacing
+            if (gridY % 2 == 1)
+            {
+                x += cellSize * 0.75f;
+            }
+            
             return new Vector3(x, y, 0);
         }
 

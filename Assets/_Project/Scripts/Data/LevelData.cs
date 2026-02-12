@@ -1,6 +1,8 @@
 using UnityEngine;
 using System.Collections.Generic;
 using Game.Core;
+using Game.Utilities;
+using NaughtyAttributes;
 
 namespace Game.Data
 {
@@ -36,10 +38,10 @@ namespace Game.Data
         [SerializeField] private GridType gridType = GridType.Hex;
 
         [Tooltip("Width of the grid (number of columns)")]
-        [SerializeField] [Range(2, 8)] private int gridWidth = 5;
+        [SerializeField] [Range(2, 15)] private int gridWidth = 5;
 
         [Tooltip("Height of the grid (number of rows)")]
-        [SerializeField] [Range(2, 8)] private int gridHeight = 5;
+        [SerializeField] [Range(2, 20)] private int gridHeight = 5;
 
         public GridType GridType => gridType;
         public int GridWidth => gridWidth;
@@ -75,18 +77,9 @@ namespace Game.Data
             [Tooltip("Initial rotation state (0-5 for 60° increments)")]
             [Range(0, 5)] public int initialRotation = 0;
 
-            [Tooltip("Override the rotation capability from connectionData?")]
-            public bool overrideCanRotate = false;
-
-            [Tooltip("Custom rotation capability (only used if overrideCanRotate is true)")]
-            public bool customCanRotate = true;
-
             // Check if node can be rotated (uses override if set, otherwise checks connectionData)
             public bool CanRotate()
             {
-                if (overrideCanRotate)
-                    return customCanRotate;
-
                 if (connectionDataReference != null)
                     return connectionDataReference.CanRotate;
 
@@ -104,9 +97,9 @@ namespace Game.Data
             if (levelNumber < 1)
                 levelNumber = 1;
 
-            // Clamp grid dimensions
-            gridWidth = Mathf.Clamp(gridWidth, 2, 8);
-            gridHeight = Mathf.Clamp(gridHeight, 2, 8);
+            // Clamp grid dimensions if needed
+            //gridWidth = Mathf.Clamp(gridWidth, 2, 8);
+            //gridHeight = Mathf.Clamp(gridHeight, 2, 8);
 
             // Validate node positions within grid bounds
             if (nodeLayouts != null)
@@ -213,8 +206,6 @@ namespace Game.Data
                         y = y,
                         connectionDataReference = null,
                         initialRotation = 0,
-                        overrideCanRotate = false,
-                        customCanRotate = true
                     };
                     nodeLayouts.Add(newNode);
                 }
@@ -267,6 +258,163 @@ namespace Game.Data
         }
 #endif
 
+        #endregion
+
+        #region Editor Tools
+
+        [Button("Auto-Solve Rotations")]
+        private void SolveLevel()
+        {
+#if UNITY_EDITOR
+            UnityEditor.Undo.RecordObject(this, "Auto-Solve Level");
+#endif
+            Debug.Log($"[{levelName}] Starting Auto-Solve...");
+
+            // Brute force: Iterate multiple times to propagate connections from Source -> End
+            // We need enough passes for the "wave" to travel across the grid
+            for (int pass = 0; pass < 10; pass++) 
+            {
+                int changes = 0;
+                foreach (var node in nodeLayouts)
+                {
+                    if (node == null || node.connectionDataReference == null) continue;
+                    if (!node.CanRotate()) continue; // Skip Fixed Nodes (Sources)
+
+                    // Try all 6 rotations and score them
+                    int bestRotation = node.initialRotation;
+                    int bestScore = -999;
+
+                    for (int r = 0; r < 6; r++)
+                    {
+                        node.initialRotation = r; // Temporarily apply
+                        int score = EvaluateFit(node);
+
+                        if (score > bestScore)
+                        {
+                            bestScore = score;
+                            bestRotation = r;
+                        }
+                    }
+
+                    // Apply the winner
+                    if (node.initialRotation != bestRotation)
+                    {
+                        node.initialRotation = bestRotation;
+                        changes++;
+                    }
+                }
+                
+                // Optimization: If nothing changed this pass, we are done
+                if (changes == 0) break;
+            }
+
+#if UNITY_EDITOR
+            UnityEditor.EditorUtility.SetDirty(this);
+#endif
+            Debug.Log($"[{levelName}] Auto-Solve Complete!");
+        }
+
+        // Returns a score for the current rotation:
+        // +10 for connecting to a valid neighbor
+        // -100 for pointing into a Void/Wall
+        // -10 for pointing into a Fixed neighbor that blocks us
+        private int EvaluateFit(NodeLayoutData node)
+        {
+            int score = 0;
+            bool connectedToSomething = false;
+
+            for (int i = 0; i < 6; i++)
+            {
+                HexDirection dir = (HexDirection)i;
+                
+                // 1. Do I output here?
+                bool myOutput = HasOutputInDirection(node, i);
+
+                // 2. Who is there?
+                Vector2Int neighborPos = ConnectionChecker.GetNeighborPosition(new Vector2Int(node.x, node.y), dir);
+                var neighborNode = GetNodeAt(neighborPos.x, neighborPos.y);
+
+                // --- CASE A: Pointing into Void (Nothing there) ---
+                if (neighborNode == null || neighborNode.connectionDataReference == null)
+                {
+                    if (myOutput) score -= 100; // Penalize leaking into empty space
+                    continue; 
+                }
+
+                // 3. Does neighbor point back?
+                HexDirection oppositeDir = ConnectionChecker.GetOppositeDirection(dir);
+                bool neighborInput = HasOutputInDirection(neighborNode, (int)oppositeDir);
+
+                // --- CASE B: Valid Connection ---
+                if (myOutput && neighborInput)
+                {
+                    score += 10;
+                    connectedToSomething = true;
+                }
+                // --- CASE C: Mismatch (One points, one doesn't) ---
+                else if (myOutput != neighborInput)
+                {
+                    // This is the CRITICAL FIX:
+                    // If the neighbor CAN rotate, we don't penalize heavily yet. 
+                    // We assume they might fix themselves in the next pass.
+                    
+                    if (!neighborNode.CanRotate())
+                    {
+                        // Neighbor is FIXED (e.g. Wall/Source) and blocking us.
+                        // This is a hard error.
+                        score -= 50; 
+                    }
+                    else
+                    {
+                        // Neighbor is ROTATABLE but wrong. 
+                        // Small penalty to prefer open ports, but don't rule it out.
+                        // (Actually, usually better to ignore penalty so we don't shy away from them)
+                    }
+                }
+            }
+
+            // Bonus: If we haven't connected to ANYTHING, that's usually bad for a pipe game
+            if (!connectedToSomething) score -= 5;
+
+            return score;
+        }
+
+        private bool HasOutputInDirection(NodeLayoutData node, int dirIndex)
+        {
+            if (node.connectionDataReference == null) return false;
+
+            bool[] baseConns = node.connectionDataReference.GetConnections();
+            
+            // Formula: (WorldDirection - Rotation + 6) % 6
+            int baseIndex = (dirIndex - node.initialRotation + 6) % 6;
+            
+            return baseConns[baseIndex];
+        }
+
+
+        [Button("Scramble Rotations")]
+        private void ScrambleRotations()
+        {
+#if UNITY_EDITOR
+            UnityEditor.Undo.RecordObject(this, "Scramble Level");
+#endif
+            int count = 0;
+            foreach (var node in nodeLayouts)
+            {
+                // Only rotate nodes that are allowed to move
+                if (node != null && node.CanRotate())
+                {
+                    // Pick a random rotation (0 to 5)
+                    node.initialRotation = Random.Range(0, 6);
+                    count++;
+                }
+            }
+
+#if UNITY_EDITOR
+            UnityEditor.EditorUtility.SetDirty(this);
+#endif
+            Debug.Log($"[{levelName}] Scrambled {count} nodes!");
+        }
         #endregion
     }
 }
