@@ -4,6 +4,8 @@ using DG.Tweening;
 using Game.Core;
 using Game.Data;
 using Game.Utilities;
+using NaughtyAttributes;
+
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -55,14 +57,15 @@ namespace Game.Gameplay
         #endregion
 
         #region Public Properties
-
+        [ShowNativeProperty]
         public Vector2Int GridPosition { get; private set; }
+        [ShowNativeProperty]
         public int CurrentRotation { get; private set; }
         public bool IsPowered { get; private set; }
         public bool CanRotate { get; private set; }
         public bool IsSource { get; private set; }
         public bool IsGoal { get; private set; }
-        public bool IsObstacle { get; private set; }
+        //public bool IsObstacle { get; private set; }
         public NodeConnectionData ConnectionData { get; private set; }
         public int RotationCount { get; private set; }
 
@@ -106,7 +109,7 @@ namespace Game.Gameplay
             CanRotate = connectionData.CanRotate;
             IsSource = connectionData.IsSource;
             IsGoal = connectionData.IsGoal;
-            IsObstacle = connectionData.NodeType == NodeType.Obstacle;
+            //IsObstacle = connectionData.NodeType == NodeType.Obstacle;
 
             // Cache sprites based on node type
             if (IsSource || IsGoal)
@@ -136,8 +139,8 @@ namespace Game.Gameplay
                     staticDecorations.SetActive(true);
                     if (iconSpriteRenderer != null && iconSprite_On != null)
                         iconSpriteRenderer.sprite = iconSprite_On;
-                    if (ringSpriteRenderer != null && ringSprite != null)
-                        ringSpriteRenderer.sprite = ringSprite;
+                    //    if (ringSpriteRenderer != null && ringSprite != null)
+                    //        ringSpriteRenderer.sprite = ringSprite;
                 }
                 IsPowered = true;
             }
@@ -148,8 +151,8 @@ namespace Game.Gameplay
                     staticDecorations.SetActive(true);
                     if (iconSpriteRenderer != null && iconSprite_Off != null)
                         iconSpriteRenderer.sprite = iconSprite_Off;
-                    if (ringSpriteRenderer != null && ringSprite != null)
-                        ringSpriteRenderer.sprite = ringSprite;
+                    //if (ringSpriteRenderer != null && ringSprite != null)
+                    //    ringSpriteRenderer.sprite = ringSprite;
                 }
                 IsPowered = false;
             }
@@ -195,7 +198,8 @@ namespace Game.Gameplay
             float targetRotation = -CurrentRotation * 60f;
 
             // Animate rotation on container only
-            rotatingContainer.DOLocalRotate(new Vector3(0, 0, targetRotation), 0.25f)
+            var rotTime = rotationCooldown - 0.05f;
+            rotatingContainer.DOLocalRotate(new Vector3(0, 0, targetRotation), rotTime)
                 .SetEase(Ease.OutBack)
                 .OnComplete(() =>
                 {
@@ -207,6 +211,21 @@ namespace Game.Gameplay
 
             // Scale bounce for feedback
             transform.DOScale(1.1f, 0.1f).SetLoops(2, LoopType.Yoyo);
+        }
+
+        // Call this during initialization or scrambling
+        public void SetInitialRotation(int rot)
+        {
+            CurrentRotation = rot;
+
+            // Snap the visual container instantly, no tweening
+            if (rotatingContainer != null)
+            {
+                rotatingContainer.localRotation = Quaternion.Euler(0, 0, -CurrentRotation * 60f);
+            }
+
+            // Update internal state but don't play sound/effects
+            UpdateVisuals();
         }
 
         #endregion
@@ -222,11 +241,16 @@ namespace Game.Gameplay
             bool[] baseConnections = ConnectionData.GetConnections();
             bool[] rotatedConnections = new bool[6];
 
-            // Rotate array by CurrentRotation positions
+            // CORRECTED: Map each base connection to its rotated direction
+            // If base has connection at direction i, after rotation it points at (i - CurrentRotation)
+            // We subtract because sprite rotates clockwise (negative Z rotation)
             for (int i = 0; i < 6; i++)
             {
-                int rotatedIndex = (i + CurrentRotation) % 6;
-                rotatedConnections[i] = baseConnections[rotatedIndex];
+                if (baseConnections[i])
+                {
+                    int newDirection = (i + CurrentRotation + 6) % 6;
+                    rotatedConnections[newDirection] = true;
+                }
             }
 
             return rotatedConnections;
