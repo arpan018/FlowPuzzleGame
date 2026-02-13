@@ -152,7 +152,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   allLevels:
-  - {fileID: 11400000, guid: 32ba89469ed6b124ca573c6a6de0fe60, type: 2}
+  - {fileID: 11400000, guid: 6cfc7868d5dd1414982f625e2e5c7d1a, type: 2}
   autoCheckWinCondition: 1
   winCheckDelay: 0.3
 --- !u!4 &14703755

@@ -1,0 +1,49 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 739cacf1f505cd0488777affd9113049, type: 3}
+  m_Name: Level_5
+  m_EditorClassIdentifier: 
+  levelNumber: 5
+  levelName: Level 5
+  difficulty: 1
+  gridType: 1
+  gridWidth: 8
+  gridHeight: 10
+  nodeLayouts:
+  - x: 1
+    y: 3
+    connectionDataReference: {fileID: 11400000, guid: a0d09d49643c25e478d7124ed0aa4403, type: 2}
+    initialRotation: 0
+  - x: 1
+    y: 5
+    connectionDataReference: {fileID: 11400000, guid: ba8d6615d8c61714c81ec24697a369f4, type: 2}
+    initialRotation: 2
+  - x: 2
+    y: 4
+    connectionDataReference: {fileID: 11400000, guid: a80387591a17c7743b718b578a877aa7, type: 2}
+    initialRotation: 1
+  - x: 2
+    y: 2
+    connectionDataReference: {fileID: 11400000, guid: a80387591a17c7743b718b578a877aa7, type: 2}
+    initialRotation: 0
+  - x: 1
+    y: 1
+    connectionDataReference: {fileID: 11400000, guid: a80387591a17c7743b718b578a877aa7, type: 2}
+    initialRotation: 1
+  - x: 1
+    y: 2
+    connectionDataReference: {fileID: 11400000, guid: a80387591a17c7743b718b578a877aa7, type: 2}
+    initialRotation: 0
+  - x: 1
+    y: 4
+    connectionDataReference: {fileID: 11400000, guid: dc5d9ef9f4767104b89c9a7b86a172d4, type: 2}
+    initialRotation: 0

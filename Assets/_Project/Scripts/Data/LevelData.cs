@@ -22,12 +22,12 @@ namespace Game.Data
         [Tooltip("Display name for this level")]
         [SerializeField] private string levelName = "New Level";
 
-        [Tooltip("Difficulty rating (1=Easy, 5=Very Hard)")]
-        [SerializeField] [Range(1, 5)] private int difficulty = 1;
+        //[Tooltip("Difficulty rating (1=Easy, 5=Very Hard)")]
+        //[SerializeField] [Range(1, 5)] private int difficulty = 1;
 
         public int LevelNumber => levelNumber;
         public string LevelName => levelName;
-        public int Difficulty => difficulty;
+        //public int Difficulty => difficulty;
 
         #endregion
 
@@ -38,7 +38,7 @@ namespace Game.Data
         [SerializeField] private GridType gridType = GridType.Hex;
 
         [Tooltip("Width of the grid (number of columns)")]
-        [SerializeField] [Range(2, 15)] private int gridWidth = 5;
+        [SerializeField] [Range(2, 6)] private int gridWidth = 5;
 
         [Tooltip("Height of the grid (number of rows)")]
         [SerializeField] [Range(2, 20)] private int gridHeight = 5;
@@ -238,7 +238,7 @@ namespace Game.Data
             // Log general info
             Debug.Log($"[{levelName}] Grid: {gridWidth}x{gridHeight} ({gridType})");
             Debug.Log($"[{levelName}] Total Nodes: {(nodeLayouts != null ? nodeLayouts.Count : 0)}");
-            Debug.Log($"[{levelName}] Difficulty: {difficulty}/5");
+            //Debug.Log($"[{levelName}] Difficulty: {difficulty}/5");
 
             // Check for nodes without connection data
             int nodesWithoutData = 0;
