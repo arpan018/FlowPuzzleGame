@@ -1,0 +1,92 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &3277544854852086475
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 3277544854852087093}
+  - component: {fileID: 3277544854852087092}
+  m_Layer: 0
+  m_Name: SoundManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &3277544854852087093
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3277544854852086475}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &3277544854852087092
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3277544854852086475}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ff6b8c99c94ec284c9138924670c8fe6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  sounds:
+  - soundName: Button
+    sound: 0
+    audioClip:
+    - {fileID: 8300000, guid: 0203842cf46018549b9e9d9f6e7d3885, type: 3}
+    play_ordered: 0
+    cooldown: 0
+    volume: 1
+    played_index: 0
+    deltaCooldown: 0
+  - soundName: Win
+    sound: 1
+    audioClip:
+    - {fileID: 8300000, guid: e639ba6b4b8b94c4ab229e867213b625, type: 3}
+    play_ordered: 0
+    cooldown: 0
+    volume: 1
+    played_index: 0
+    deltaCooldown: 0
+  - soundName: Tap
+    sound: 2
+    audioClip:
+    - {fileID: 8300000, guid: c8893888d34d0eb4eb715ed23f3f9e89, type: 3}
+    play_ordered: 0
+    cooldown: 0
+    volume: 1
+    played_index: 0
+    deltaCooldown: 0
+  - soundName: ConnectTile
+    sound: 3
+    audioClip:
+    - {fileID: 8300000, guid: 9b39aa81e064103429978adad08a8aa1, type: 3}
+    play_ordered: 0
+    cooldown: 0
+    volume: 0.5
+    played_index: 0
+    deltaCooldown: 0
+  - soundName: BulbOn
+    sound: 4
+    audioClip:
+    - {fileID: 8300000, guid: fce497e57f85fd64190cec931b78efc6, type: 3}
+    play_ordered: 0
+    cooldown: 0
+    volume: 0.5
+    played_index: 0
+    deltaCooldown: 0
