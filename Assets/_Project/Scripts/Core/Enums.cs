@@ -71,6 +71,13 @@ namespace Game.Core
         Settings
     }
 
+    public enum GameDifficulty
+    {
+        Easy = 0,
+        Medium = 1,
+        Hard = 2,
+        VeryHard = 3,
+    }
     
     // Helper class for working with hexagonal directions.
     public static class HexDirectionHelper

@@ -10,7 +10,7 @@ namespace Game.Sounds
         public enum SoundType
         {
             Button, Win,
-            Tap, TileConnect, BulbOn
+            Tap, TileConnect, BulbOn, BgMusic
         }
 
         private static SoundManager scr;
@@ -209,7 +209,7 @@ namespace Game.Sounds
             public bool play_ordered;
             public float cooldown;
             [Range(0, 1)]
-            public float volume = 1;
+            public float volume = 0.5f;
             [HideInInspector] public int played_index;
             [HideInInspector] public float deltaCooldown;
         }

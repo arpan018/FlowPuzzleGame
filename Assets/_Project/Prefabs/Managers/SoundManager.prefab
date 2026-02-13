@@ -48,34 +48,26 @@ MonoBehaviour:
   - soundName: Button
     sound: 0
     audioClip:
-    - {fileID: 8300000, guid: 0203842cf46018549b9e9d9f6e7d3885, type: 3}
+    - {fileID: 8300000, guid: 189494428eb7fd240b233e2cce18465d, type: 3}
     play_ordered: 0
     cooldown: 0
-    volume: 1
+    volume: 0.5
     played_index: 0
     deltaCooldown: 0
   - soundName: Win
     sound: 1
     audioClip:
-    - {fileID: 8300000, guid: e639ba6b4b8b94c4ab229e867213b625, type: 3}
+    - {fileID: 8300000, guid: 44ca74cb6c1a1684ca62a82951b6404a, type: 3}
+    - {fileID: 8300000, guid: 5ba69324698bed64e93f85b90300628a, type: 3}
     play_ordered: 0
     cooldown: 0
-    volume: 1
+    volume: 0.5
     played_index: 0
     deltaCooldown: 0
   - soundName: Tap
     sound: 2
     audioClip:
-    - {fileID: 8300000, guid: c8893888d34d0eb4eb715ed23f3f9e89, type: 3}
-    play_ordered: 0
-    cooldown: 0
-    volume: 1
-    played_index: 0
-    deltaCooldown: 0
-  - soundName: ConnectTile
-    sound: 3
-    audioClip:
-    - {fileID: 8300000, guid: 9b39aa81e064103429978adad08a8aa1, type: 3}
+    - {fileID: 8300000, guid: f62e65f8895900c45b2df815f83d15d6, type: 3}
     play_ordered: 0
     cooldown: 0
     volume: 0.5
@@ -84,9 +76,18 @@ MonoBehaviour:
   - soundName: BulbOn
     sound: 4
     audioClip:
-    - {fileID: 8300000, guid: fce497e57f85fd64190cec931b78efc6, type: 3}
+    - {fileID: 8300000, guid: cd42944bc14c2fa4a8686170eb69a609, type: 3}
     play_ordered: 0
     cooldown: 0
     volume: 0.5
+    played_index: 0
+    deltaCooldown: 0
+  - soundName: BgMusic
+    sound: 5
+    audioClip:
+    - {fileID: 8300000, guid: 5ca8ca71b50b69640b7eab2dd8414858, type: 3}
+    play_ordered: 0
+    cooldown: 0
+    volume: 0.2
     played_index: 0
     deltaCooldown: 0
