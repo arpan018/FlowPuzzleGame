@@ -15,7 +15,7 @@ MonoBehaviour:
   levelNumber: 9
   levelName: Level 9
   gridType: 1
-  gridWidth: 15
+  gridWidth: 6
   gridHeight: 20
   nodeLayouts:
   - x: 0

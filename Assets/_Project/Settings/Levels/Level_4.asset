@@ -14,9 +14,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   levelNumber: 4
   levelName: Level 4
-  difficulty: 1
   gridType: 1
-  gridWidth: 8
+  gridWidth: 6
   gridHeight: 8
   nodeLayouts:
   - x: 0

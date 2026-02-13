@@ -152,6 +152,15 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   allLevels:
+  - {fileID: 11400000, guid: 4b016055238eabd4e841184931149a14, type: 2}
+  - {fileID: 11400000, guid: b4096579f90f29f40bd2d401c77710b2, type: 2}
+  - {fileID: 11400000, guid: 360e4436e945a6c47b226e7bcd4f2318, type: 2}
+  - {fileID: 11400000, guid: f62bd42e74b6d8e4590489aa05988dbd, type: 2}
+  - {fileID: 11400000, guid: 20cb393893480334eb4b06f55c91cb1a, type: 2}
+  - {fileID: 11400000, guid: ab16a5a3b51014249b247d14f203f1a3, type: 2}
+  - {fileID: 11400000, guid: 912a3e8e11ea4a1408639f98c532e9c8, type: 2}
+  - {fileID: 11400000, guid: effdfc79d8d3f194f991058fc44beecc, type: 2}
+  - {fileID: 11400000, guid: e023bddfe263766469fd824e2736513d, type: 2}
   - {fileID: 11400000, guid: 6cfc7868d5dd1414982f625e2e5c7d1a, type: 2}
   autoCheckWinCondition: 1
   winCheckDelay: 0.3
@@ -870,38 +879,6 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1030359240}
   m_CullTransparentMesh: 1
---- !u!1 &1079400353
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1079400354}
-  m_Layer: 0
-  m_Name: GameBoard
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &1079400354
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1079400353}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children:
-  - {fileID: 1081326011}
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1081326010
 GameObject:
   m_ObjectHideFlags: 0
@@ -927,12 +904,12 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1081326010}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 1079400354}
+  m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &1081326012
 MonoBehaviour:
@@ -1525,5 +1502,5 @@ SceneRoots:
   - {fileID: 705507995}
   - {fileID: 421510565}
   - {fileID: 860437869}
-  - {fileID: 1079400354}
+  - {fileID: 1081326011}
   - {fileID: 14703755}
