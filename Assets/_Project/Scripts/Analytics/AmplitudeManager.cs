@@ -1,7 +1,7 @@
 using UnityEngine;
 using System.Collections.Generic;
 using Game.Core;
-using System;
+using Game.Gameplay;
 
 namespace Game.Analytics
 {
@@ -10,39 +10,15 @@ namespace Game.Analytics
         private const string API_KEY = "KEY_HERE";
         private static Amplitude amplitude;
 
-        private const string PREF_TOTAL_COMPLETED = "TotalLevelsCompleted";
-
         #region Mono Callbacks
-
 
         private void Start()
         {
             InitializeAmplitude();
         }
 
-        private void OnEnable()
-        {
-            GameEvents.OnLevelStarted += OnLevelStarted;
-            GameEvents.OnLevelCompleted += OnLevelCompleted;
-        }
-
-        private void OnDisable()
-        {
-            GameEvents.OnLevelStarted -= OnLevelStarted;
-            GameEvents.OnLevelCompleted -= OnLevelCompleted;
-        }
-
-        private void OnLevelCompleted(int levelNumber, float time, int rotations)
-        {
-            TrackLevelCompleted(levelNumber, time, rotations);
-        }
-
-        private void OnLevelStarted(int levelNumber, GameDifficulty difficulty)
-        {
-            TrackLevelStarted(levelNumber, difficulty);
-        }
-
         #endregion
+        
         private void InitializeAmplitude()
         {
             amplitude = Amplitude.getInstance();
@@ -52,8 +28,9 @@ namespace Game.Analytics
             amplitude.logging = true;
             amplitude.trackSessionEvents(true);
             amplitude.init(API_KEY);
-
-            Debug.Log("[AmplitudeManager] Initialized with EU server");
+            //Debug.Log("[AmplitudeManager] Initialized with EU server");
+            
+            TrackGameStarted();
         }
 
         public void TrackGameStarted()
@@ -61,10 +38,10 @@ namespace Game.Analytics
             if (Instance == null || amplitude == null) return;
 
             amplitude.logEvent("game_started");
-            Debug.Log("[AmplitudeManager] Event: game_started");
+            //Debug.Log("[AmplitudeManager] Event: game_started");
         }
 
-        public void TrackLevelStarted(int levelNumber, Game.Core.GameDifficulty difficulty)
+        public void TrackLevelStarted(int levelNumber, GameDifficulty difficulty)
         {
             if (Instance == null || amplitude == null) return;
 
@@ -75,7 +52,7 @@ namespace Game.Analytics
             };
 
             amplitude.logEvent("level_started", properties);
-            Debug.Log($"[AmplitudeManager] Event: level_started (Level {levelNumber}, {difficulty})");
+            //Debug.Log($"[AmplitudeManager] Event: level_started (Level {levelNumber}, {difficulty})");
         }
 
         public void TrackLevelCompleted(int levelNumber, float timeSeconds, int rotations)
@@ -91,26 +68,12 @@ namespace Game.Analytics
 
             amplitude.logEvent("level_completed", properties);
 
-            IncrementCompletedLevels();
-
-            Debug.Log($"[AmplitudeManager] Event: level_completed (Level {levelNumber}, Time: {timeSeconds:F1}s, Moves: {rotations})");
-        }
-
-        private int GetTotalCompletedLevels()
-        {
-            return PlayerPrefs.GetInt(PREF_TOTAL_COMPLETED, 0);
-        }
-
-        private void IncrementCompletedLevels()
-        {
-            int currentTotal = GetTotalCompletedLevels();
-            currentTotal++;
-            PlayerPrefs.SetInt(PREF_TOTAL_COMPLETED, currentTotal);
-            PlayerPrefs.Save();
-
-            Dictionary<string, object> values = new Dictionary<string, object>();
-            amplitude.addUserProperty("total_levels_completed", currentTotal);
-            Debug.Log($"[AmplitudeManager] User property updated: total_levels_completed = {currentTotal}");
+            // Get total from LevelManager (single source of truth)
+            int totalCompleted = LevelManager.GetTotalCompletedLevels();
+            amplitude.addUserProperty("total_levels_completed", totalCompleted);
+            
+            //Debug.Log($"[AmplitudeManager] Event: level_completed (Level {levelNumber}, Time: {timeSeconds:F1}s, Moves: {rotations})");
+            //Debug.Log($"[AmplitudeManager] User property: total_levels_completed = {totalCompleted}");
         }
     }
 }

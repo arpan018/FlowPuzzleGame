@@ -5,6 +5,8 @@ using Game.Core;
 using Game.Data;
 using Game.Utilities;
 using NaughtyAttributes;
+using Game.Sounds;
+
 
 
 #if UNITY_EDITOR
@@ -182,6 +184,7 @@ namespace Game.Gameplay
             if (!CanRotate || isRotating) return;
             if (Time.time - lastRotationTime < rotationCooldown) return;
 
+            SoundManager.PlaySound(SoundManager.SoundType.Tap);
             GameEvents.TriggerNodeTapped(this);
             RotateNode();
         }
@@ -286,6 +289,9 @@ namespace Game.Gameplay
 
             IsPowered = powered;
             UpdateVisuals();
+
+            if (IsGoal && IsPowered)
+                SoundManager.PlaySound(SoundManager.SoundType.BulbOn);
 
             if (powered)
                 GameEvents.TriggerNodePowered(this);

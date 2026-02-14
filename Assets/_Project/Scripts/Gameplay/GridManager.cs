@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using Game.Data;
 using Game.Core;
+using UnityEngine.Rendering;
 
 
 #if UNITY_EDITOR
@@ -232,6 +233,12 @@ namespace Game.Gameplay
             currentLevelData = null;
         }
 
+
+        public void ToggleGrid(bool isShow) 
+        {
+            var order = isShow ? 1 : -10;
+            GetComponent<SortingGroup>().sortingOrder = order;
+        }
         #endregion
 
         #region Debug

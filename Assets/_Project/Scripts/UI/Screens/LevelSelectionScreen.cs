@@ -1,6 +1,5 @@
 using Game.Gameplay;
-using System.Collections;
-using System.Collections.Generic;
+using Game.Sounds;
 using UnityEngine;
 
 namespace Game.UI
@@ -11,7 +10,7 @@ namespace Game.UI
 
         private const string PREF_CURRENT_LEVEL = "CurrentLevel";
 
-        void Start()
+        private void OnEnable()
         {
             SetupButtons();
         }
@@ -29,11 +28,11 @@ namespace Game.UI
 
         public void OnLevelButtonClicked(int levelIndex)
         {
-            // Load the level
+            UIController.Instance.HideThisScreen(ScreenType.LevelSelectionScreen);
+            UIController.Instance.ShowThisScreen(ScreenType.GamePlayScreen);
+            
+            // Load the level via LevelManager
             LevelManager.Instance.LoadLevel(levelIndex);
-
-            // Hide level selection UI
-            gameObject.SetActive(false);
         }
 
         public static int GetUnlockedLevel()

@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using UnityEngine.UI;
 using NaughtyAttributes;
+using UnityEngine.Events;
 
 namespace Game.UI
 {
@@ -15,7 +16,7 @@ namespace Game.UI
         public EasyTween[] Listofanimation;
         Func<EasyTween, float> Time = t => t.animationParts.GetAnimationDuration();
 
-        //[SerializeField] private UnityEvent OnEnableEvent;
+        [SerializeField] private UnityEvent OnEnableEvent;
 
 
         void OnEnable()
@@ -26,19 +27,19 @@ namespace Game.UI
                 _screen = this,
                 _type = screenType
             };
-            UIController.Instance.AddScreen(newScreen);
+            //UIController.Instance.AddScreen(newScreen);
         }
 
         private void OnDisable()
         {
-            UIController.Instance.RemoveScreen(screenType);
+            //UIController.Instance.RemoveScreen(screenType);
         }
 
         [ContextMenu("Start")]
         public void AnimationPenal(bool AnimationState)
         {
-            //if (AnimationState)
-            //    OnEnableEvent?.Invoke();
+            if (AnimationState)
+                    OnEnableEvent?.Invoke();
 
             CanvasOff(AnimationState, AnimationState == true ? 0 : Listofanimation.Max(Time));
             for (int i = 0; i < Listofanimation.Length; i++)

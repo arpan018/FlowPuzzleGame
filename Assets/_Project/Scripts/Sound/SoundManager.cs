@@ -14,6 +14,7 @@ namespace Game.Sounds
             Tap, TileConnect, BulbOn, BgMusic
         }
 
+
         private static SoundManager scr;
         private AudioSource[] audioSource;
         public Sounds[] sounds;
@@ -34,6 +35,29 @@ namespace Game.Sounds
                 if (scr == null)
                     return true;
                 return scr.PF_HasSound;
+            }
+        }
+
+#if UNITY_EDITOR
+        [SerializeField] private SoundType soundType = SoundType.Button;
+
+        [Button]
+        public void TestPlaySound() 
+        {
+            PlaySound(soundType, 0.5f);
+        }
+
+        public void TestStopSound()
+        {
+            StopSound(soundType);
+        }
+#endif
+
+        private void Awake()
+        {
+            if (!PlayerPrefs.HasKey("HasSound")) 
+            {
+                PF_HasSound = true;
             }
         }
 

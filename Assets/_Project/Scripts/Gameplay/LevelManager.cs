@@ -3,6 +3,9 @@ using System.Collections.Generic;
 using Game.Core;
 using Game.Data;
 using Game.Utilities;
+using Game.Analytics;
+using Game.UI;
+using Game.Sounds;
 
 namespace Game.Gameplay
 {
@@ -22,13 +25,20 @@ namespace Game.Gameplay
         [Tooltip("Delay before checking win condition (allows animations to complete)")]
         [SerializeField] private float winCheckDelay = 0.3f;
 
-        private int currentLevelIndex = 0;
         private LevelData currentLevel;
         private List<HexNode> sourceNodes = new List<HexNode>();
         private List<HexNode> goalNodes = new List<HexNode>();
         private float levelStartTime;
         private int totalRotationsThisLevel;
         private bool isLevelActive;
+        private float levelCompletionTime;
+
+        #endregion
+
+        #region Properties
+        public int CurrentLevelIndex { get; private set; } = 0;
+
+        public LevelData[] AllLevels => allLevels;
 
         #endregion
 
@@ -42,13 +52,6 @@ namespace Game.Gameplay
         private void OnDisable()
         {
             GameEvents.OnNodeRotated -= OnNodeRotated;
-        }
-
-        private void Start()
-        {
-            // Auto-load first level for testing
-            if (allLevels != null && allLevels.Length > 0)
-                LoadLevel(0);
         }
 
         #endregion
@@ -69,35 +72,45 @@ namespace Game.Gameplay
                 return;
             }
 
-            currentLevelIndex = levelIndex;
+
+            CurrentLevelIndex = levelIndex;
             currentLevel = allLevels[levelIndex];
 
+            Debug.Log($"=== load Level {currentLevel.LevelNumber}");
             if (currentLevel == null)
             {
                 Debug.LogError($"[LevelManager] Level at index {levelIndex} is null!");
                 return;
             }
 
+            // Track level start in Amplitude
+            AmplitudeManager.Instance.TrackLevelStarted(
+                currentLevel.LevelNumber,
+                currentLevel.Difficulty
+            );
+
+            GridManager.Instance.ToggleGrid(true);
+            UIController.Instance.ShowThisScreen(ScreenType.GamePlayScreen);
             StartLevel();
         }
 
-        public void LoadNextLevel()
+        //public void RestartCurrentLevel()
+        //{
+        //    if (currentLevel == null) return;
+        //    LoadLevel(CurrentLevelIndex);
+        //}
+
+        public void CleanupCurrentLevel()
         {
-            int nextIndex = currentLevelIndex + 1;
+            // Stop level activity
+            isLevelActive = false;
 
-            if (nextIndex >= allLevels.Length)
-            {
-                Debug.Log("[LevelManager] All levels completed!");
-                return;
-            }
+            GridManager.Instance.ClearGrid();
+            sourceNodes.Clear();
+            goalNodes.Clear();
+            totalRotationsThisLevel = 0;
 
-            LoadLevel(nextIndex);
-        }
-
-        public void RestartCurrentLevel()
-        {
-            if (currentLevel == null) return;
-            LoadLevel(currentLevelIndex);
+            Debug.Log("[LevelManager] Current level cleaned up");
         }
 
         #endregion
@@ -226,14 +239,29 @@ namespace Game.Gameplay
             if (!isLevelActive) return;
 
             isLevelActive = false;
-            float completionTime = Time.time - levelStartTime;
+            levelCompletionTime = Time.time - levelStartTime;
 
-            GameEvents.TriggerLevelCompleted(currentLevel.LevelNumber, completionTime, totalRotationsThisLevel);
+            // Increment total completed level
+            IncrementTotalCompletedLevels();
+
+            SoundManager.PlaySound(SoundManager.SoundType.Win);
+
+            AmplitudeManager.Instance.TrackLevelCompleted(
+                CurrentLevelIndex,
+                levelCompletionTime,
+                totalRotationsThisLevel
+            );
+
+            LevelSelectionScreen.UnlockNextLevel(CurrentLevelIndex);
+
+            // Show level complete screen with stats
+            GridManager.Instance.ToggleGrid(false);
+            UIController.Instance.HideThisScreen(ScreenType.GamePlayScreen);
+            UIController.Instance.ShowThisScreen(ScreenType.LevelCompleteScreen);
 
             Debug.Log($"=== LEVEL COMPLETE ===");
             Debug.Log($"Level: {currentLevel.LevelName} (#{currentLevel.LevelNumber})");
-            Debug.Log($"Time: {completionTime:F2}s");
-            Debug.Log($"Rotations: {totalRotationsThisLevel}");
+            Debug.Log($"[LevelManager] Level {CurrentLevelIndex + 1} completed! Time: {levelCompletionTime:F1}s, Moves: {totalRotationsThisLevel}");
             Debug.Log($"Stars: {CalculateStars(totalRotationsThisLevel)}");
         }
 
@@ -250,7 +278,7 @@ namespace Game.Gameplay
 
         public int GetCurrentLevelNumber()
         {
-            return currentLevel?.LevelNumber ?? 0;
+            return currentLevel.LevelNumber;
         }
 
         public int GetTotalRotations()
@@ -264,64 +292,38 @@ namespace Game.Gameplay
             return Time.time - levelStartTime;
         }
 
-        public bool IsLevelActive()
+        public LevelData GetLevelData(int index)
         {
-            return isLevelActive;
+            if (index < 0 || index >= allLevels.Length) return null;
+            return allLevels[index];
         }
 
-        public LevelData GetCurrentLevel()
+        public float GetLevelCompletionTime()
         {
-            return currentLevel;
+            return levelCompletionTime;
         }
 
-        public LevelData GetLevelData(int levelNum)
-        {
-            if (allLevels.Length >= levelNum)
-                return allLevels[levelNum];
-            else
-                return null;
-        }
         #endregion
 
-        #region Debug
+        #region Total Levels Completed Tracking
 
-        [ContextMenu("Force Win Check")]
-        private void ForceWinCheck()
+        private const string PREF_TOTAL_COMPLETED = "TotalLevelsCompleted";
+
+        // Get total completed levels from PlayerPrefs (static for easy access)
+        public static int GetTotalCompletedLevels()
         {
-            CheckWinCondition();
+            return PlayerPrefs.GetInt(PREF_TOTAL_COMPLETED, 0);
         }
 
-        [ContextMenu("Print Level Stats")]
-        private void PrintStats()
+        // Increment total completed levels
+        private void IncrementTotalCompletedLevels()
         {
-            if (currentLevel == null)
-            {
-                Debug.Log("[LevelManager] No level loaded.");
-                return;
-            }
+            int currentTotal = GetTotalCompletedLevels();
+            currentTotal++;
+            PlayerPrefs.SetInt(PREF_TOTAL_COMPLETED, currentTotal);
+            PlayerPrefs.Save();
 
-            Debug.Log($"=== LEVEL STATS ===");
-            Debug.Log($"Level: {currentLevel.LevelName} (#{currentLevel.LevelNumber})");
-            Debug.Log($"Active: {isLevelActive}");
-            Debug.Log($"Elapsed Time: {GetElapsedTime():F2}s");
-            Debug.Log($"Rotations: {totalRotationsThisLevel}");
-            Debug.Log($"Sources: {sourceNodes.Count}");
-            Debug.Log($"Goals: {goalNodes.Count}");
-
-            int poweredGoals = 0;
-            foreach (var goal in goalNodes)
-            {
-                if (goal != null && goal.IsPowered)
-                    poweredGoals++;
-            }
-            Debug.Log($"Powered Goals: {poweredGoals}/{goalNodes.Count}");
-        }
-
-        [ContextMenu("Update Connections")]
-        private void DebugUpdateConnections()
-        {
-            HashSet<HexNode> powered = UpdateConnections();
-            Debug.Log($"[LevelManager] Connections updated. Powered nodes: {powered.Count}");
+            Debug.Log($"[LevelManager] Total completed levels: {currentTotal}");
         }
 
         #endregion

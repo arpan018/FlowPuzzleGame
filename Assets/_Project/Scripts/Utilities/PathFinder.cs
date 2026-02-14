@@ -75,7 +75,7 @@ namespace Game.Utilities
                 }
             }
 
-            Debug.Log($"[PathFinder] BFS complete. Total powered nodes: {visited.Count}");
+            //Debug.Log($"[PathFinder] BFS complete. Total powered nodes: {visited.Count}");
             return visited;
         }
 
