@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   levelNumber: 2
   levelName: Level 2
-  difficulty: 1
+  difficulty: 0
   gridType: 1
   gridWidth: 5
   gridHeight: 5

@@ -21,7 +21,7 @@ MonoBehaviour:
   isGoal: 0
   spriteOff: {fileID: 0}
   spriteOn: {fileID: 0}
-  parentSprite: {fileID: 21300000, guid: 519575df0df83994192f3e0aedb757ba, type: 3}
+  parentSprite: {fileID: 21300000, guid: 9e4abea39025e4e46898a6cf7d1a7b21, type: 3}
   centerSpriteOff: {fileID: 21300000, guid: 7d083e79be0737d4486b381531e9d66c, type: 3}
   centerSpriteOn: {fileID: 21300000, guid: 7f3899ab557d8ef4d82b58389d465af8, type: 3}
   ringSprite: {fileID: 21300000, guid: 9e4abea39025e4e46898a6cf7d1a7b21, type: 3}
