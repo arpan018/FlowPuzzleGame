@@ -12,23 +12,17 @@ namespace Game.Core
     {
         #region Level Events
 
-        public static event Action<int> OnLevelStarted;
-        public static event Action<int, float, int> OnLevelCompleted; // levelNumber, completionTime, totalRotations
-        public static event Action<int> OnLevelFailed;
+        public static event Action<int, GameDifficulty> OnLevelStarted; // levelNumber, difficulty
+        public static event Action<int, float, int> OnLevelCompleted;   // levelNumber, completionTime, totalRotations
 
-        public static void TriggerLevelStarted(int levelNumber)
+        public static void TriggerLevelStarted(int levelNumber,GameDifficulty difficulty)
         {
-            OnLevelStarted?.Invoke(levelNumber);
+            OnLevelStarted?.Invoke(levelNumber,difficulty);
         }
 
         public static void TriggerLevelCompleted(int levelNumber, float completionTime, int totalRotations)
         {
             OnLevelCompleted?.Invoke(levelNumber, completionTime, totalRotations);
-        }
-
-        public static void TriggerLevelFailed(int levelNumber)
-        {
-            OnLevelFailed?.Invoke(levelNumber);
         }
 
         #endregion
@@ -109,7 +103,6 @@ namespace Game.Core
         {
             OnLevelStarted = null;
             OnLevelCompleted = null;
-            OnLevelFailed = null;
 
             OnNodeTapped = null;
             OnNodeRotated = null;

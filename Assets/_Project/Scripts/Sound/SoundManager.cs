@@ -1,4 +1,5 @@
-﻿using System;
+﻿using NaughtyAttributes;
+using System;
 using System.Collections;
 using System.Linq;
 using UnityEngine;
@@ -18,6 +19,23 @@ namespace Game.Sounds
         public Sounds[] sounds;
 
         int soundCounts;
+
+        [ShowNativeProperty]
+        public bool PF_HasSound
+        {
+            get => PlayerPrefs.GetInt("HasSound") == 1;
+            set => PlayerPrefs.SetInt("HasSound", value ? 1 : 0);
+        }
+
+        public static bool IsSoundEnabled
+        {
+            get
+            {
+                if (scr == null)
+                    return true;
+                return scr.PF_HasSound;
+            }
+        }
 
         void Start()
         {
@@ -70,10 +88,26 @@ namespace Game.Sounds
             }
         }
 
+        public static void ToggleSound()
+        {
+            scr.PF_HasSound = !scr.PF_HasSound;
+            
+            if (!scr.PF_HasSound)
+            {
+                for (int i = 0; i < scr.audioSource.Length; i++)
+                {
+                    if (scr.audioSource[i].isPlaying)
+                    {
+                        scr.audioSource[i].Stop();
+                    }
+                }
+            }
+        }
+
         public static void PlaySound(SoundType sound, float volume = 1, float pitch = 1, float delay = 0)
         {
-            // todo: return if music/sound on
-            //if (!hasSound) return;
+            if (!scr.PF_HasSound)
+                return;
 
             if (scr.canPlay[sound.GetHashCode()])
             {
@@ -123,8 +157,8 @@ namespace Game.Sounds
 
         public static void PlaySoundLoop(SoundType sound, float volume = 1f, float pitch = 1f)
         {
-            // todo: return if music/sound on
-            //if (!hasSound) return;
+            if (!scr.PF_HasSound)
+                return;
 
             var s = scr.sounds.FirstOrDefault(x => x.sound == sound);
             if (s == null || s.audioClip == null || s.audioClip.Length == 0)

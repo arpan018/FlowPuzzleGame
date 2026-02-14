@@ -7,31 +7,8 @@ using Game.Utilities;
 namespace Game.Gameplay
 {
     // Manager hadles level, gameplay flow and win check. Cordinate between various scripts
-    public class LevelManager : MonoBehaviour
+    public class LevelManager : MonoBehaviourSingleton<LevelManager>
     {
-        #region Singleton
-
-        private static LevelManager _instance;
-
-        public static LevelManager Instance
-        {
-            get
-            {
-                if (_instance == null)
-                {
-                    _instance = FindObjectOfType<LevelManager>();
-                    if (_instance == null)
-                    {
-                        GameObject go = new GameObject("LevelManager");
-                        _instance = go.AddComponent<LevelManager>();
-                    }
-                }
-                return _instance;
-            }
-        }
-
-        #endregion
-
         #region Fields
 
         [Header("Level Configuration")]
@@ -56,19 +33,6 @@ namespace Game.Gameplay
         #endregion
 
         #region Setup
-
-        private void Awake()
-        {
-            if (_instance == null)
-            {
-                _instance = this;
-                DontDestroyOnLoad(gameObject);
-            }
-            else if (_instance != this)
-            {
-                Destroy(gameObject);
-            }
-        }
 
         private void OnEnable()
         {
@@ -148,7 +112,7 @@ namespace Game.Gameplay
             GridManager.Instance.GenerateGrid(currentLevel);
             // random at each start, enable if needed
             //ScrambleNodes();
-            
+
             sourceNodes = GridManager.Instance.GetSourceNodes();
             goalNodes = GridManager.Instance.GetGoalNodes();
 
@@ -161,7 +125,7 @@ namespace Game.Gameplay
             totalRotationsThisLevel = 0;
             isLevelActive = true;
 
-            GameEvents.TriggerLevelStarted(currentLevel.LevelNumber);
+            GameEvents.TriggerLevelStarted(currentLevel.LevelNumber, currentLevel.Difficulty);
             UpdateConnections();
         }
 
@@ -218,7 +182,7 @@ namespace Game.Gameplay
                 if (source == null) continue;
 
                 HashSet<HexNode> connectedNodes = PathFinder.FindConnectedNodes(source, gridNodes);
-                
+
                 foreach (HexNode node in connectedNodes)
                     allPoweredNodes.Add(node);
             }
@@ -310,6 +274,13 @@ namespace Game.Gameplay
             return currentLevel;
         }
 
+        public LevelData GetLevelData(int levelNum)
+        {
+            if (allLevels.Length >= levelNum)
+                return allLevels[levelNum];
+            else
+                return null;
+        }
         #endregion
 
         #region Debug
@@ -336,7 +307,7 @@ namespace Game.Gameplay
             Debug.Log($"Rotations: {totalRotationsThisLevel}");
             Debug.Log($"Sources: {sourceNodes.Count}");
             Debug.Log($"Goals: {goalNodes.Count}");
-            
+
             int poweredGoals = 0;
             foreach (var goal in goalNodes)
             {

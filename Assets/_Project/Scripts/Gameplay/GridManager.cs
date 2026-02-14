@@ -1,6 +1,8 @@
 ﻿using UnityEngine;
 using System.Collections.Generic;
 using Game.Data;
+using Game.Core;
+
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -9,30 +11,8 @@ using UnityEditor;
 namespace Game.Gameplay
 {
     // GridManager handles: grid spwawn and managing. nodes instantiation, positioning, and queries.
-    public class GridManager : MonoBehaviour
+    public class GridManager : MonoBehaviourSingleton<GridManager>   
     {
-        #region Singleton
-
-        private static GridManager _instance;
-        
-        public static GridManager Instance
-        {
-            get
-            {
-                if (_instance == null)
-                {
-                    _instance = FindObjectOfType<GridManager>();
-                    if (_instance == null)
-                    {
-                        GameObject go = new GameObject("GridManager");
-                        _instance = go.AddComponent<GridManager>();
-                    }
-                }
-                return _instance;
-            }
-        }
-
-        #endregion
 
         #region Serialized Fields
 
@@ -43,10 +23,7 @@ namespace Game.Gameplay
         [Header("Shared Sprites")]
         [Tooltip("Background hex sprite - same for all nodes (tile_bg.png)")]
         [SerializeField] private Sprite sharedBgSprite;
-
-        [Tooltip("White hex outline sprite - same for all nodes (tile_stroke.png)")]
-        [SerializeField] private Sprite sharedParentSprite;
-
+        
         [Header("Grid Settings")]
         [Tooltip("Size of each hex cell in world units")]
         [SerializeField] private float cellSize = 1.0f;
@@ -64,16 +41,7 @@ namespace Game.Gameplay
 
         private void Awake()
         {
-            if (_instance == null)
-            {
-                _instance = this;
-                //DontDestroyOnLoad(gameObject);
-                InitializeGridContainer();
-            }
-            else if (_instance != this)
-            {
-                Destroy(gameObject);
-            }
+            InitializeGridContainer();
         }
 
         private void InitializeGridContainer()
@@ -105,12 +73,6 @@ namespace Game.Gameplay
             if (sharedBgSprite == null)
             {
                 Debug.LogError("[GridManager] sharedBgSprite not assigned!");
-                return;
-            }
-
-            if (sharedParentSprite == null)
-            {
-                Debug.LogError("[GridManager] sharedParentSprite not assigned!");
                 return;
             }
 
