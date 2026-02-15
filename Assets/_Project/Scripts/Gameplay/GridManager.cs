@@ -217,6 +217,21 @@ namespace Game.Gameplay
             return goals;
         }
 
+        public Vector3 GetGridCenter()
+        {
+            if (gridNodes == null || gridNodes.Count == 0)
+                return Vector3.zero;
+            
+            Vector3 sum = Vector3.zero;
+            foreach (var node in gridNodes.Values)
+            {
+                if (node != null)
+                    sum += node.transform.position;
+            }
+            
+            return sum / gridNodes.Count;
+        }
+
         #endregion
 
         #region Cleanup

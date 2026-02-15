@@ -6,6 +6,7 @@ using Game.Utilities;
 using Game.Analytics;
 using Game.UI;
 using Game.Sounds;
+using DG.Tweening;
 
 namespace Game.Gameplay
 {
@@ -24,6 +25,11 @@ namespace Game.Gameplay
 
         [Tooltip("Delay before checking win condition (allows animations to complete)")]
         [SerializeField] private float winCheckDelay = 0.3f;
+
+        [Header("Visual Effects")]
+        [SerializeField] private GameObject goalLightUpPrefab;
+        [SerializeField] private GameObject starBurstPrefab;
+        [SerializeField] private float zoomOutAmount = 0.25f;
 
         private LevelData currentLevel;
         private List<HexNode> sourceNodes = new List<HexNode>();
@@ -243,29 +249,69 @@ namespace Game.Gameplay
 
             // Increment total completed level
             IncrementTotalCompletedLevels();
-
-            SoundManager.PlaySound(SoundManager.SoundType.Win);
-
+            
             AmplitudeManager.Instance.TrackLevelCompleted(
                 CurrentLevelIndex,
                 levelCompletionTime,
                 totalRotationsThisLevel
             );
-
+            
             LevelSelectionScreen.UnlockNextLevel(CurrentLevelIndex);
-            Scheduler.Invoke(() => 
-            {
-                // Show level complete screen with stats
+            
+            StartCelebrationSequence();
+            
+            Debug.Log($"[LevelManager] Level {CurrentLevelIndex + 1} completed! Time: {levelCompletionTime:F1}s, Moves: {totalRotationsThisLevel}");
+        }
+
+        private void StartCelebrationSequence()
+        {
+            PlayGoalEffects();
+            
+            Scheduler.Invoke(() => {
+                CameraZoomOut();
+            }, 0.5f);
+            
+            Scheduler.Invoke(() => {
                 GridManager.Instance.ToggleGrid(false);
                 UIController.Instance.HideThisScreen(ScreenType.GamePlayScreen);
                 UIController.Instance.ShowThisScreen(ScreenType.LevelCompleteScreen);
+            }, 1.5f);
+        }
 
-                Debug.Log($"=== LEVEL COMPLETE ===");
-                Debug.Log($"Level: {currentLevel.LevelName} (#{currentLevel.LevelNumber})");
-                Debug.Log($"[LevelManager] Level {CurrentLevelIndex + 1} completed! Time: {levelCompletionTime:F1}s, Moves: {totalRotationsThisLevel}");
-                Debug.Log($"Stars: {CalculateStars(totalRotationsThisLevel)}");
-            }, 1f);
+        private void PlayGoalEffects()
+        {
+            for (int i = 0; i < goalNodes.Count; i++)
+            {
+                int index = i;
+                
+                Scheduler.Invoke(() => {
+                    if (goalNodes[index] != null)
+                    {
+                        GameObject fx = Instantiate(goalLightUpPrefab, goalNodes[index].transform.position, Quaternion.identity);
+                        Destroy(fx, 1f);
+                        SoundManager.PlaySound(SoundManager.SoundType.BulbOn);
+                    }
+                }, index * 0.2f);
+            }
             
+            Scheduler.Invoke(() => {
+                Vector3 centerPos = GridManager.Instance.GetGridCenter();
+                GameObject burst = Instantiate(starBurstPrefab, centerPos, Quaternion.identity);
+                Destroy(burst, 2f);
+                SoundManager.PlaySound(SoundManager.SoundType.Win);
+            }, goalNodes.Count * 0.2f + 0.3f);
+        }
+
+        private void CameraZoomOut()
+        {
+            Camera mainCam = Camera.main;
+            if (mainCam == null) return;
+            
+            float currentSize = mainCam.orthographicSize;
+            float targetSize = currentSize * (1f + zoomOutAmount);
+            
+            mainCam.DOKill();
+            mainCam.DOOrthoSize(targetSize, 0.6f).SetEase(Ease.OutQuad);
         }
 
         private int CalculateStars(int rotations)
