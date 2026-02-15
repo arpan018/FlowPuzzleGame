@@ -7,7 +7,7 @@ namespace Game.Analytics
 {
     public class AmplitudeManager : MonoBehaviourSingleton<AmplitudeManager>
     {
-        private const string API_KEY = "KEY_HERE";
+        private const string API_KEY = "6b427a9577f88e0d1c34b7b57a5a22e3";
         private static Amplitude amplitude;
 
         #region Mono Callbacks
@@ -23,13 +23,15 @@ namespace Game.Analytics
         {
             amplitude = Amplitude.getInstance();
             amplitude.setServerZone(AmplitudeServerZone.EU);
-            //amplitude.setServerUrl("https://api.eu.amplitude.com/2/httpapi");
+            //amplitude.setServerUrl("https://api.eu.amplitude.com");
+
 
             amplitude.logging = true;
             amplitude.trackSessionEvents(true);
             amplitude.init(API_KEY);
+            amplitude.setEventUploadPeriodSeconds(10);
+
             //Debug.Log("[AmplitudeManager] Initialized with EU server");
-            
             TrackGameStarted();
         }
 
@@ -38,6 +40,7 @@ namespace Game.Analytics
             if (Instance == null || amplitude == null) return;
 
             amplitude.logEvent("game_started");
+            amplitude.uploadEvents();
             //Debug.Log("[AmplitudeManager] Event: game_started");
         }
 
@@ -52,6 +55,8 @@ namespace Game.Analytics
             };
 
             amplitude.logEvent("level_started", properties);
+            amplitude.uploadEvents();
+
             //Debug.Log($"[AmplitudeManager] Event: level_started (Level {levelNumber}, {difficulty})");
         }
 
@@ -71,7 +76,8 @@ namespace Game.Analytics
             // Get total from LevelManager (single source of truth)
             int totalCompleted = LevelManager.GetTotalCompletedLevels();
             amplitude.addUserProperty("total_levels_completed", totalCompleted);
-            
+
+            amplitude.uploadEvents();
             //Debug.Log($"[AmplitudeManager] Event: level_completed (Level {levelNumber}, Time: {timeSeconds:F1}s, Moves: {rotations})");
             //Debug.Log($"[AmplitudeManager] User property: total_levels_completed = {totalCompleted}");
         }
