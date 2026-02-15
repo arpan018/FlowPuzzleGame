@@ -74,7 +74,7 @@ MonoBehaviour:
     played_index: 0
     deltaCooldown: 0
   - soundName: BulbOn
-    sound: 4
+    sound: 3
     audioClip:
     - {fileID: 8300000, guid: cd42944bc14c2fa4a8686170eb69a609, type: 3}
     play_ordered: 0
@@ -83,12 +83,12 @@ MonoBehaviour:
     played_index: 0
     deltaCooldown: 0
   - soundName: BgMusic
-    sound: 5
+    sound: 4
     audioClip:
     - {fileID: 8300000, guid: 5ca8ca71b50b69640b7eab2dd8414858, type: 3}
     play_ordered: 0
     cooldown: 0
-    volume: 0.5
+    volume: 0.2
     played_index: 0
     deltaCooldown: 0
   soundType: 0

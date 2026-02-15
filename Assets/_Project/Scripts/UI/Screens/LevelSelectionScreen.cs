@@ -15,7 +15,7 @@ namespace Game.UI
             SetupButtons();
         }
 
-        private void SetupButtons()
+        public void SetupButtons()
         {
             int unlockedLevel = GetUnlockedLevel();
 

@@ -11,7 +11,7 @@ namespace Game.Sounds
         public enum SoundType
         {
             Button, Win,
-            Tap, TileConnect, BulbOn, BgMusic
+            Tap, BulbOn, BgMusic
         }
 
 

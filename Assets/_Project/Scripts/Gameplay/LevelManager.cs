@@ -253,16 +253,19 @@ namespace Game.Gameplay
             );
 
             LevelSelectionScreen.UnlockNextLevel(CurrentLevelIndex);
+            Scheduler.Invoke(() => 
+            {
+                // Show level complete screen with stats
+                GridManager.Instance.ToggleGrid(false);
+                UIController.Instance.HideThisScreen(ScreenType.GamePlayScreen);
+                UIController.Instance.ShowThisScreen(ScreenType.LevelCompleteScreen);
 
-            // Show level complete screen with stats
-            GridManager.Instance.ToggleGrid(false);
-            UIController.Instance.HideThisScreen(ScreenType.GamePlayScreen);
-            UIController.Instance.ShowThisScreen(ScreenType.LevelCompleteScreen);
-
-            Debug.Log($"=== LEVEL COMPLETE ===");
-            Debug.Log($"Level: {currentLevel.LevelName} (#{currentLevel.LevelNumber})");
-            Debug.Log($"[LevelManager] Level {CurrentLevelIndex + 1} completed! Time: {levelCompletionTime:F1}s, Moves: {totalRotationsThisLevel}");
-            Debug.Log($"Stars: {CalculateStars(totalRotationsThisLevel)}");
+                Debug.Log($"=== LEVEL COMPLETE ===");
+                Debug.Log($"Level: {currentLevel.LevelName} (#{currentLevel.LevelNumber})");
+                Debug.Log($"[LevelManager] Level {CurrentLevelIndex + 1} completed! Time: {levelCompletionTime:F1}s, Moves: {totalRotationsThisLevel}");
+                Debug.Log($"Stars: {CalculateStars(totalRotationsThisLevel)}");
+            }, 1f);
+            
         }
 
         private int CalculateStars(int rotations)
