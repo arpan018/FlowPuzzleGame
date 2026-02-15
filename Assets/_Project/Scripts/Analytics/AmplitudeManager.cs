@@ -7,7 +7,7 @@ namespace Game.Analytics
 {
     public class AmplitudeManager : MonoBehaviourSingleton<AmplitudeManager>
     {
-        private const string API_KEY = "6b427a9577f88e0d1c34b7b57a5a22e3";
+        private const string API_KEY = "YOUR_AMPLITUDE_API_KEY_HERE";
         private static Amplitude amplitude;
 
         #region Mono Callbacks
