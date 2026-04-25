@@ -29,8 +29,13 @@ namespace Game.UI
 
         public void OpenCloseObjectAnimationDefine(bool Openstate)
         {
+            CheckIfCurrenAnimationGoingExits();
+            currentAnimationGoing.SetTarget(rectTransform);
+
             if (Openstate == true)
             {
+                rectTransform.gameObject.SetActive(true);
+
                 //open animation
                 if (!currentAnimationGoing.IsObjectOpened())
                 {
@@ -49,6 +54,8 @@ namespace Game.UI
 
         public void OpenCloseObjectAnimation()
         {
+            CheckIfCurrenAnimationGoingExits();
+            currentAnimationGoing.SetTarget(rectTransform);
             rectTransform.gameObject.SetActive(true);
 
             TriggerOpenClose();
@@ -104,7 +111,7 @@ namespace Game.UI
 
         public void SetFadeStartEndValues(float startValua, float endValue)
         {
-            this.currentAnimationGoing.SetFadeValuesStartEnd(endValue, startValua);
+            this.currentAnimationGoing.SetFadeValuesStartEnd(startValua, endValue);
         }
 
         public void SetAnimationProperties(AnimationParts animationParts)
@@ -124,11 +131,18 @@ namespace Game.UI
 
         private void Start()
         {
+            CheckIfCurrenAnimationGoingExits();
+            currentAnimationGoing.SetTarget(rectTransform);
             AnimationParts.OnDisableOrDestroy += CheckTriggerEndState;
         }
 
         private void OnDestroy()
         {
+            if (currentAnimationGoing != null)
+            {
+                currentAnimationGoing.Kill();
+            }
+
             AnimationParts.OnDisableOrDestroy -= CheckTriggerEndState;
         }
 
@@ -144,6 +158,8 @@ namespace Game.UI
 
         private void TriggerOpenClose()
         {
+            currentAnimationGoing.SetTarget(rectTransform);
+
             if (!currentAnimationGoing.IsObjectOpened())
             {
                 currentAnimationGoing.PlayOpenAnimations();

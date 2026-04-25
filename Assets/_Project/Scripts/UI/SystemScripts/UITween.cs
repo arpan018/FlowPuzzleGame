@@ -1,153 +1,53 @@
 ﻿using UnityEngine;
 using UnityEngine.Events;
+using DG.Tweening;
 
 namespace Game.UI
 {
+    public enum TweenEaseSource
+    {
+        AnimationCurve,
+        DOTweenEase
+    }
+
     public class CurrentAnimation
     {
         private AnimationParts animationPart;
-
-        private float counterTween = 2f;
-
-        private enum States
-        {
-            AWAKE,
-            READY,
-            START,
-            ENDED,
-            FINALENDED,
-            COUNT
-        }
-
-        ;
-
-        private States AnimationStates = States.AWAKE;
+        private RectTransform targetRectTransform;
+        private Sequence activeSequence;
+        private bool endedCalled;
+        private bool finalEndCalled;
 
         public CurrentAnimation(AnimationParts animationPart)
         {
             this.animationPart = animationPart;
         }
 
+        public void SetTarget(RectTransform rectTransform)
+        {
+            targetRectTransform = rectTransform;
+        }
+
         public void AnimationFrame(RectTransform rectTransform)
         {
-            if (AnimationStates == States.AWAKE)
-                return;
-
-            if (counterTween <= 1f) // Max value is 1f
-            {
-                SetAnimationOnFrame(rectTransform, counterTween);
-            }
+            SetTarget(rectTransform);
         }
 
         public void SetAnimationOnFrame(RectTransform rectTransform, float percentage)
         {
-            // Position Animation
-            if (animationPart.PositionPropetiesAnim.IsPositionEnabled())
-            {
-                MoveAnimation(rectTransform, percentage);
-            }
-
-            // Rotation Animation
-            if (animationPart.RotationPropetiesAnim.IsRotationEnabled())
-            {
-                RotateAnimation(rectTransform, percentage);
-            }
-
-            // Scale Animation
-            if (animationPart.ScalePropetiesAnim.IsScaleEnabled())
-            {
-                ScaleAnimation(rectTransform, percentage);
-            }
-
-            // Fade Animation
-            if (animationPart.FadePropetiesAnim.IsFadeEnabled())
-            {
-                SetAlphaValue(rectTransform.transform, percentage);
-            }
+            SetTarget(rectTransform);
+            ApplyAnimationValues(percentage, !animationPart.IsObjectOpened());
         }
 
         public void LateAnimationFrame(RectTransform rectTransform)
         {
-            if (AnimationStates == States.AWAKE)
-                return;
-
-            if (counterTween <= 1f) // Max value is 1f
-            {
-                float deltaTime = (animationPart.UnscaledTimeAnimation) ? Time.unscaledDeltaTime : Time.deltaTime;
-
-                counterTween += deltaTime / animationPart.GetAnimationDuration();
-            }
-            else
-            {
-                if (AnimationStates != States.FINALENDED)
-                {
-                    SetAnimationOnFrame(rectTransform, 1f);
-
-                    if (AnimationStates != States.ENDED
-                        && AnimationStates != States.FINALENDED
-                        && animationPart.AtomicAnimation)
-                    {
-                        animationPart.Ended();
-                        AnimationStates = States.ENDED;
-                    }
-                    else
-                    {
-                        animationPart.FinalEnd();
-                        AnimationStates = States.FINALENDED;
-                    }
-                }
-            }
-
-            if (counterTween > .9f && !animationPart.AtomicAnimation)
-            {
-                if (AnimationStates != States.ENDED
-                    && AnimationStates != States.FINALENDED)
-                {
-                    animationPart.Ended();
-                    AnimationStates = States.ENDED;
-                }
-            }
-
+            SetTarget(rectTransform);
             animationPart.FrameCheck();
         }
 
         public void PlayOpenAnimations()
         {
-            // Open Pos Anim
-            if (animationPart.PositionPropetiesAnim.IsPositionEnabled())
-            {
-                SetCurrentAnimPos(animationPart.PositionPropetiesAnim.TweenCurveEnterPos,
-                    animationPart.PositionPropetiesAnim.StartPos,
-                    animationPart.PositionPropetiesAnim.EndPos);
-            }
-
-            // Open Rot Anim
-            if (animationPart.RotationPropetiesAnim.IsRotationEnabled())
-            {
-                SetCurrentAnimRot(animationPart.RotationPropetiesAnim.TweenCurveEnterRot,
-                    animationPart.RotationPropetiesAnim.StartRot,
-                    animationPart.RotationPropetiesAnim.EndRot);
-            }
-
-            // Open scale Anim
-            if (animationPart.ScalePropetiesAnim.IsScaleEnabled())
-            {
-                SetCurrentAnimScale(animationPart.ScalePropetiesAnim.TweenCurveEnterScale,
-                    animationPart.ScalePropetiesAnim.StartScale,
-                    animationPart.ScalePropetiesAnim.EndScale);
-            }
-
-            // Open Fade Anim
-            if (animationPart.FadePropetiesAnim.IsFadeEnabled())
-            {
-                SetFadeAnimation(animationPart.FadePropetiesAnim.GetStartFadeValue(),
-                    animationPart.FadePropetiesAnim.GetEndFadeValue());
-            }
-
-            counterTween = 0f;
-
-            AnimationStates = States.READY;
-
+            PlayAnimations(true);
             animationPart.ChangeStatus();
             animationPart.CheckCallbackStatus();
         }
@@ -159,41 +59,7 @@ namespace Game.UI
 
         public void PlayCloseAnimations()
         {
-            // Close Pos Anim
-            if (animationPart.PositionPropetiesAnim.IsPositionEnabled())
-            {
-                SetCurrentAnimPos(animationPart.PositionPropetiesAnim.TweenCurveExitPos,
-                    animationPart.PositionPropetiesAnim.EndPos,
-                    animationPart.PositionPropetiesAnim.StartPos);
-            }
-
-            // Close Rot Anim
-            if (animationPart.RotationPropetiesAnim.IsRotationEnabled())
-            {
-                SetCurrentAnimRot(animationPart.RotationPropetiesAnim.TweenCurveExitRot,
-                    animationPart.RotationPropetiesAnim.EndRot,
-                    animationPart.RotationPropetiesAnim.StartRot);
-            }
-
-            // Close Scale Anim
-            if (animationPart.ScalePropetiesAnim.IsScaleEnabled())
-            {
-                SetCurrentAnimScale(animationPart.ScalePropetiesAnim.TweenCurveExitScale,
-                    animationPart.ScalePropetiesAnim.EndScale,
-                    animationPart.ScalePropetiesAnim.StartScale);
-            }
-
-            // Close Fade Anim
-            if (animationPart.FadePropetiesAnim.IsFadeEnabled())
-            {
-                SetFadeAnimation(animationPart.FadePropetiesAnim.GetEndFadeValue(),
-                    animationPart.FadePropetiesAnim.GetStartFadeValue());
-            }
-
-            counterTween = 0f;
-
-            AnimationStates = States.READY;
-
+            PlayAnimations(false);
             animationPart.ChangeStatus();
             animationPart.CheckCallbackStatus();
         }
@@ -248,100 +114,184 @@ namespace Game.UI
             return animationPart.GetAnimationDuration();
         }
 
-        #region PositionAnim
-
-        private AnimationCurve currentAnimationCurvePos;
-        private Vector3 currentStartPos;
-        private Vector3 currentEndPos;
-
-        public void SetCurrentAnimPos(AnimationCurve currentAnimationCurvePos, Vector3 currentStartPos, Vector3 currentEndPos)
+        public void Kill()
         {
-            this.currentAnimationCurvePos = currentAnimationCurvePos;
-            this.currentStartPos = currentStartPos;
-            this.currentEndPos = currentEndPos;
+            KillActiveSequence();
         }
 
-        public void MoveAnimation(RectTransform _rectTransform, float _counterTween)
+        private void PlayAnimations(bool opening)
         {
-            float evaluatedValue = currentAnimationCurvePos.Evaluate(_counterTween);
-            Vector3 valueAdded = (currentEndPos - currentStartPos) * evaluatedValue;
+            if (targetRectTransform == null)
+                return;
 
-            _rectTransform.anchoredPosition = (Vector2)(currentStartPos + valueAdded);
-        }
+            KillActiveSequence();
 
-        #endregion
+            endedCalled = false;
+            finalEndCalled = false;
 
-        #region ScaleAnim
+            ApplyAnimationValues(0f, opening);
 
-        private AnimationCurve currentAnimationCurveScale;
-        private Vector3 currentStartScale;
-        private Vector3 currentEndScale;
+            float duration = Mathf.Max(0.01f, animationPart.GetAnimationDuration());
+            activeSequence = DOTween.Sequence();
+            activeSequence.SetTarget(targetRectTransform);
+            activeSequence.SetUpdate(animationPart.UnscaledTimeAnimation);
 
-        public void SetCurrentAnimScale(AnimationCurve currentAnimationCurveScale, Vector3 currentStartScale, Vector3 currentEndScale)
-        {
-            this.currentAnimationCurveScale = currentAnimationCurveScale;
-            this.currentStartScale = currentStartScale;
-            this.currentEndScale = currentEndScale;
-        }
+            bool hasTween = false;
 
-        public void ScaleAnimation(RectTransform _rectTransform, float _counterTween)
-        {
-            float evaluatedValue = currentAnimationCurveScale.Evaluate(_counterTween);
-            Vector3 valueAdded = (currentEndScale - currentStartScale) * evaluatedValue;
-
-            _rectTransform.localScale = currentStartScale + valueAdded;
-        }
-
-        #endregion
-
-        #region RotationAnim
-
-        private AnimationCurve currentAnimationCurveRot;
-        private Vector3 currentStartRot;
-        private Vector3 currentEndRot;
-
-        public void SetCurrentAnimRot(AnimationCurve currentAnimationCurveRot, Vector3 currentStartRot, Vector3 currentEndRot)
-        {
-            this.currentAnimationCurveRot = currentAnimationCurveRot;
-            this.currentStartRot = currentStartRot;
-            this.currentEndRot = currentEndRot;
-        }
-
-        public void RotateAnimation(RectTransform _rectTransform, float _counterTween)
-        {
-            float evaluatedValue = currentAnimationCurveRot.Evaluate(_counterTween);
-            Vector3 valueAdded = (currentEndRot - currentStartRot) * evaluatedValue;
-
-            _rectTransform.localEulerAngles = currentStartRot + valueAdded;
-        }
-
-        #endregion
-
-        #region FadeAnim
-
-        private float startAlphaValue;
-        private float endAlphaValue;
-
-        public void SetFadeAnimation(float startAlphaValue, float endAlphaValue)
-        {
-            this.startAlphaValue = startAlphaValue;
-            this.endAlphaValue = endAlphaValue;
-        }
-
-        public void SetAlphaValue(Transform _objectToSetAlpha, float _counterTween)
-        {
-            if (_objectToSetAlpha.GetComponent<CanvasGroup>())
+            if (animationPart.PositionPropetiesAnim.IsPositionEnabled())
             {
-                CanvasGroup GraphicElement = _objectToSetAlpha.GetComponent<CanvasGroup>();
+                Vector3 endValue = opening ? animationPart.PositionPropetiesAnim.EndPos : animationPart.PositionPropetiesAnim.StartPos;
+                Tween moveTween = targetRectTransform.DOAnchorPos((Vector2)endValue, duration);
+                ApplyEase(moveTween,
+                    opening ? animationPart.PositionPropetiesAnim.TweenCurveEnterPos : animationPart.PositionPropetiesAnim.TweenCurveExitPos,
+                    opening ? animationPart.PositionPropetiesAnim.EnterEaseSource : animationPart.PositionPropetiesAnim.ExitEaseSource,
+                    opening ? animationPart.PositionPropetiesAnim.EnterEase : animationPart.PositionPropetiesAnim.ExitEase);
+                activeSequence.Join(moveTween);
+                hasTween = true;
+            }
 
-                _counterTween = Mathf.Clamp(_counterTween, 0f, 1f);
+            if (animationPart.RotationPropetiesAnim.IsRotationEnabled())
+            {
+                Vector3 endValue = opening ? animationPart.RotationPropetiesAnim.EndRot : animationPart.RotationPropetiesAnim.StartRot;
+                Tween rotateTween = targetRectTransform.DOLocalRotate(endValue, duration, RotateMode.FastBeyond360);
+                ApplyEase(rotateTween,
+                    opening ? animationPart.RotationPropetiesAnim.TweenCurveEnterRot : animationPart.RotationPropetiesAnim.TweenCurveExitRot,
+                    opening ? animationPart.RotationPropetiesAnim.EnterEaseSource : animationPart.RotationPropetiesAnim.ExitEaseSource,
+                    opening ? animationPart.RotationPropetiesAnim.EnterEase : animationPart.RotationPropetiesAnim.ExitEase);
+                activeSequence.Join(rotateTween);
+                hasTween = true;
+            }
 
-                GraphicElement.alpha = _counterTween;
+            if (animationPart.ScalePropetiesAnim.IsScaleEnabled())
+            {
+                Vector3 endValue = opening ? animationPart.ScalePropetiesAnim.EndScale : animationPart.ScalePropetiesAnim.StartScale;
+                Tween scaleTween = targetRectTransform.DOScale(endValue, duration);
+                ApplyEase(scaleTween,
+                    opening ? animationPart.ScalePropetiesAnim.TweenCurveEnterScale : animationPart.ScalePropetiesAnim.TweenCurveExitScale,
+                    opening ? animationPart.ScalePropetiesAnim.EnterEaseSource : animationPart.ScalePropetiesAnim.ExitEaseSource,
+                    opening ? animationPart.ScalePropetiesAnim.EnterEase : animationPart.ScalePropetiesAnim.ExitEase);
+                activeSequence.Join(scaleTween);
+                hasTween = true;
+            }
 
+            if (animationPart.FadePropetiesAnim.IsFadeEnabled())
+            {
+                CanvasGroup canvasGroup = targetRectTransform.GetComponent<CanvasGroup>();
+
+                if (canvasGroup != null)
+                {
+                    float endValue = opening ? animationPart.FadePropetiesAnim.GetEndFadeValue() : animationPart.FadePropetiesAnim.GetStartFadeValue();
+                    Tween fadeTween = canvasGroup.DOFade(endValue, duration);
+                    ApplyEase(fadeTween,
+                        opening ? animationPart.FadePropetiesAnim.TweenCurveEnterFade : animationPart.FadePropetiesAnim.TweenCurveExitFade,
+                        opening ? animationPart.FadePropetiesAnim.EnterEaseSource : animationPart.FadePropetiesAnim.ExitEaseSource,
+                        opening ? animationPart.FadePropetiesAnim.EnterEase : animationPart.FadePropetiesAnim.ExitEase);
+                    activeSequence.Join(fadeTween);
+                    hasTween = true;
+                }
+            }
+
+            if (!hasTween)
+            {
+                activeSequence.AppendInterval(duration);
+            }
+
+            if (!animationPart.AtomicAnimation)
+            {
+                activeSequence.InsertCallback(duration * 0.9f, TriggerEnded);
+            }
+
+            activeSequence.OnUpdate(animationPart.FrameCheck);
+            activeSequence.OnComplete(() =>
+            {
+                if (animationPart.AtomicAnimation)
+                {
+                    TriggerEnded();
+                }
+
+                TriggerFinalEnd();
+            });
+
+            activeSequence.Play();
+        }
+
+        private void ApplyAnimationValues(float percentage, bool opening)
+        {
+            if (targetRectTransform == null)
+                return;
+
+            if (animationPart.PositionPropetiesAnim.IsPositionEnabled())
+            {
+                Vector3 startValue = opening ? animationPart.PositionPropetiesAnim.StartPos : animationPart.PositionPropetiesAnim.EndPos;
+                Vector3 endValue = opening ? animationPart.PositionPropetiesAnim.EndPos : animationPart.PositionPropetiesAnim.StartPos;
+                targetRectTransform.anchoredPosition = (Vector2)Vector3.LerpUnclamped(startValue, endValue, percentage);
+            }
+
+            if (animationPart.RotationPropetiesAnim.IsRotationEnabled())
+            {
+                Vector3 startValue = opening ? animationPart.RotationPropetiesAnim.StartRot : animationPart.RotationPropetiesAnim.EndRot;
+                Vector3 endValue = opening ? animationPart.RotationPropetiesAnim.EndRot : animationPart.RotationPropetiesAnim.StartRot;
+                targetRectTransform.localEulerAngles = Vector3.LerpUnclamped(startValue, endValue, percentage);
+            }
+
+            if (animationPart.ScalePropetiesAnim.IsScaleEnabled())
+            {
+                Vector3 startValue = opening ? animationPart.ScalePropetiesAnim.StartScale : animationPart.ScalePropetiesAnim.EndScale;
+                Vector3 endValue = opening ? animationPart.ScalePropetiesAnim.EndScale : animationPart.ScalePropetiesAnim.StartScale;
+                targetRectTransform.localScale = Vector3.LerpUnclamped(startValue, endValue, percentage);
+            }
+
+            if (animationPart.FadePropetiesAnim.IsFadeEnabled())
+            {
+                CanvasGroup canvasGroup = targetRectTransform.GetComponent<CanvasGroup>();
+
+                if (canvasGroup != null)
+                {
+                    float startValue = opening ? animationPart.FadePropetiesAnim.GetStartFadeValue() : animationPart.FadePropetiesAnim.GetEndFadeValue();
+                    float endValue = opening ? animationPart.FadePropetiesAnim.GetEndFadeValue() : animationPart.FadePropetiesAnim.GetStartFadeValue();
+                    canvasGroup.alpha = Mathf.LerpUnclamped(startValue, endValue, percentage);
+                }
             }
         }
 
-        #endregion
+        private void ApplyEase(Tween tween, AnimationCurve curve, TweenEaseSource easeSource, Ease ease)
+        {
+            if (easeSource == TweenEaseSource.AnimationCurve && curve != null && curve.length > 0)
+            {
+                tween.SetEase(curve);
+            }
+            else
+            {
+                tween.SetEase(ease);
+            }
+        }
+
+        private void TriggerEnded()
+        {
+            if (endedCalled)
+                return;
+
+            endedCalled = true;
+            animationPart.Ended();
+        }
+
+        private void TriggerFinalEnd()
+        {
+            if (finalEndCalled)
+                return;
+
+            finalEndCalled = true;
+            animationPart.FinalEnd();
+        }
+
+        private void KillActiveSequence()
+        {
+            if (activeSequence == null)
+                return;
+
+            activeSequence.Kill();
+            activeSequence = null;
+        }
     }
 
     [System.Serializable]
@@ -367,6 +317,14 @@ namespace Game.UI
         public AnimationCurve TweenCurveEnterPos;
         [HideInInspector]
         public AnimationCurve TweenCurveExitPos;
+        [HideInInspector]
+        public TweenEaseSource EnterEaseSource = TweenEaseSource.AnimationCurve;
+        [HideInInspector]
+        public TweenEaseSource ExitEaseSource = TweenEaseSource.AnimationCurve;
+        [HideInInspector]
+        public Ease EnterEase = Ease.Linear;
+        [HideInInspector]
+        public Ease ExitEase = Ease.Linear;
         [HideInInspector]
         public Vector3 StartPos;
         [HideInInspector]
@@ -438,6 +396,14 @@ namespace Game.UI
         [HideInInspector]
         public AnimationCurve TweenCurveExitScale;
         [HideInInspector]
+        public TweenEaseSource EnterEaseSource = TweenEaseSource.AnimationCurve;
+        [HideInInspector]
+        public TweenEaseSource ExitEaseSource = TweenEaseSource.AnimationCurve;
+        [HideInInspector]
+        public Ease EnterEase = Ease.Linear;
+        [HideInInspector]
+        public Ease ExitEase = Ease.Linear;
+        [HideInInspector]
         public Vector3 StartScale;
         [HideInInspector]
         public Vector3 EndScale;
@@ -475,6 +441,14 @@ namespace Game.UI
         [HideInInspector]
         public AnimationCurve TweenCurveExitRot;
         [HideInInspector]
+        public TweenEaseSource EnterEaseSource = TweenEaseSource.AnimationCurve;
+        [HideInInspector]
+        public TweenEaseSource ExitEaseSource = TweenEaseSource.AnimationCurve;
+        [HideInInspector]
+        public Ease EnterEase = Ease.Linear;
+        [HideInInspector]
+        public Ease ExitEase = Ease.Linear;
+        [HideInInspector]
         public Vector3 StartRot;
         [HideInInspector]
         public Vector3 EndRot;
@@ -508,6 +482,19 @@ namespace Game.UI
         [SerializeField]
         [HideInInspector]
         private float endFade = 1f;
+
+        [HideInInspector]
+        public AnimationCurve TweenCurveEnterFade;
+        [HideInInspector]
+        public AnimationCurve TweenCurveExitFade;
+        [HideInInspector]
+        public TweenEaseSource EnterEaseSource = TweenEaseSource.AnimationCurve;
+        [HideInInspector]
+        public TweenEaseSource ExitEaseSource = TweenEaseSource.AnimationCurve;
+        [HideInInspector]
+        public Ease EnterEase = Ease.Linear;
+        [HideInInspector]
+        public Ease ExitEase = Ease.Linear;
 
         public void SetFadeEnable(bool enabled)
         {
