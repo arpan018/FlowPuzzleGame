@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using UnityEditor;
+using DG.Tweening;
 
 namespace Game.UI
 {
@@ -20,6 +21,7 @@ namespace Game.UI
         private bool positionEnabled;
         private bool scaleEnabled;
         private bool rotationEnabled;
+        private GUIStyle easeHeaderStyle;
         EasyTween tweenScript;
 
         public void OnEnable()
@@ -40,6 +42,8 @@ namespace Game.UI
                     if (!Application.isPlaying)
                     {
                         tweenScript.animationParts.SetAniamtioDuration(EditorGUILayout.Slider("Animation Duration (Sec)", tweenScript.animationParts.GetAnimationDuration(), 0.01f, 10f));
+                        // TODO: Later option - add separate Start Delay and Exit Delay controls.
+                        // tweenScript.animationParts.SetAnimationDelay(EditorGUILayout.Slider("Animation Delay (Sec)", tweenScript.animationParts.GetAnimationDelay(), 0f, 10f));
 
                         EditorFade();
                         EditorPos();
@@ -200,6 +204,64 @@ namespace Game.UI
             }
         }
 
+        void DrawEaseField(string directionLabel, ref TweenEaseSource easeSource, ref Ease ease, ref AnimationCurve animationCurve)
+        {
+            EditorGUILayout.BeginVertical(GUILayout.MinWidth(150f));
+            EditorGUILayout.LabelField(directionLabel, GetEaseHeaderStyle());
+
+            float previousLabelWidth = EditorGUIUtility.labelWidth;
+            EditorGUIUtility.labelWidth = 0f;
+
+            easeSource = (TweenEaseSource)EditorGUILayout.EnumPopup(GUIContent.none, easeSource);
+
+            if (easeSource == TweenEaseSource.AnimationCurve)
+            {
+                if (animationCurve == null)
+                {
+                    animationCurve = new AnimationCurve();
+                }
+
+                animationCurve = EditorGUILayout.CurveField(GUIContent.none, animationCurve);
+            }
+            else
+            {
+                ease = (Ease)EditorGUILayout.EnumPopup(GUIContent.none, ease);
+            }
+
+            EditorGUIUtility.labelWidth = previousLabelWidth;
+            EditorGUILayout.EndVertical();
+        }
+
+        void DrawEaseFields(
+                ref TweenEaseSource enterEaseSource,
+                ref Ease enterEase,
+                ref AnimationCurve enterAnimationCurve,
+                ref TweenEaseSource exitEaseSource,
+                ref Ease exitEase,
+                ref AnimationCurve exitAnimationCurve)
+        {
+            EditorGUILayout.Space(10f);
+            EditorGUILayout.BeginHorizontal();
+
+            DrawEaseField("Start Ease Mode / Value", ref enterEaseSource, ref enterEase, ref enterAnimationCurve);
+            EditorGUILayout.Space();
+            DrawEaseField("Exit Ease Mode / Value", ref exitEaseSource, ref exitEase, ref exitAnimationCurve);
+
+            EditorGUILayout.EndHorizontal();
+        }
+
+        GUIStyle GetEaseHeaderStyle()
+        {
+            if (easeHeaderStyle == null)
+            {
+                easeHeaderStyle = new GUIStyle(EditorStyles.miniBoldLabel);
+                int baseFontSize = easeHeaderStyle.fontSize > 0 ? easeHeaderStyle.fontSize : 10;
+                easeHeaderStyle.fontSize = Mathf.RoundToInt(baseFontSize * 1.2f);
+            }
+
+            return easeHeaderStyle;
+        }
+
         void EditorFade()
         {
             tweenScript.animationParts.FadePropetiesAnim.SetFadeEnable(EditorGUILayout.BeginToggleGroup("Fade In & Out",
@@ -226,6 +288,14 @@ namespace Game.UI
                         tweenScript.animationParts.FadePropetiesAnim.IsFadeOverrideEnabled()));
 
                 EditorGUILayout.EndToggleGroup();
+
+                DrawEaseFields(
+                        ref tweenScript.animationParts.FadePropetiesAnim.EnterEaseSource,
+                        ref tweenScript.animationParts.FadePropetiesAnim.EnterEase,
+                        ref tweenScript.animationParts.FadePropetiesAnim.TweenCurveEnterFade,
+                        ref tweenScript.animationParts.FadePropetiesAnim.ExitEaseSource,
+                        ref tweenScript.animationParts.FadePropetiesAnim.ExitEase,
+                        ref tweenScript.animationParts.FadePropetiesAnim.TweenCurveExitFade);
             }
 
             EditorGUILayout.EndToggleGroup();
@@ -242,25 +312,13 @@ namespace Game.UI
                 tweenScript.animationParts.PositionPropetiesAnim.SetPosStart(EditorGUILayout.Vector3Field("Start Move", tweenScript.animationParts.PositionPropetiesAnim.StartPos), tweenScript.rectTransform);
                 tweenScript.animationParts.PositionPropetiesAnim.SetPosEnd(EditorGUILayout.Vector3Field("End Move", tweenScript.animationParts.PositionPropetiesAnim.EndPos), tweenScript.rectTransform.transform);
 
-                EditorGUILayout.BeginHorizontal();
-
-                if (tweenScript.animationParts.PositionPropetiesAnim.TweenCurveEnterPos == null)
-                {
-                    tweenScript.animationParts.PositionPropetiesAnim.TweenCurveEnterPos = new AnimationCurve();
-                }
-
-                if (tweenScript.animationParts.PositionPropetiesAnim.TweenCurveExitPos == null)
-                {
-                    tweenScript.animationParts.PositionPropetiesAnim.TweenCurveExitPos = new AnimationCurve();
-                }
-
-                tweenScript.animationParts.PositionPropetiesAnim.TweenCurveEnterPos = EditorGUILayout.CurveField("Start Tween Move",
-                        tweenScript.animationParts.PositionPropetiesAnim.TweenCurveEnterPos);
-                EditorGUILayout.Space();
-                tweenScript.animationParts.PositionPropetiesAnim.TweenCurveExitPos = EditorGUILayout.CurveField("Exit Tween Move",
-                        tweenScript.animationParts.PositionPropetiesAnim.TweenCurveExitPos);
-
-                EditorGUILayout.EndHorizontal();
+                DrawEaseFields(
+                        ref tweenScript.animationParts.PositionPropetiesAnim.EnterEaseSource,
+                        ref tweenScript.animationParts.PositionPropetiesAnim.EnterEase,
+                        ref tweenScript.animationParts.PositionPropetiesAnim.TweenCurveEnterPos,
+                        ref tweenScript.animationParts.PositionPropetiesAnim.ExitEaseSource,
+                        ref tweenScript.animationParts.PositionPropetiesAnim.ExitEase,
+                        ref tweenScript.animationParts.PositionPropetiesAnim.TweenCurveExitPos);
 
                 EditorGUILayout.Space();
             }
@@ -279,25 +337,13 @@ namespace Game.UI
                 tweenScript.animationParts.ScalePropetiesAnim.StartScale = EditorGUILayout.Vector3Field("Start Scale", tweenScript.animationParts.ScalePropetiesAnim.StartScale);
                 tweenScript.animationParts.ScalePropetiesAnim.EndScale = EditorGUILayout.Vector3Field("End Scale", tweenScript.animationParts.ScalePropetiesAnim.EndScale);
 
-                EditorGUILayout.BeginHorizontal();
-
-                if (tweenScript.animationParts.ScalePropetiesAnim.TweenCurveEnterScale == null)
-                {
-                    tweenScript.animationParts.ScalePropetiesAnim.TweenCurveEnterScale = new AnimationCurve();
-                }
-
-                if (tweenScript.animationParts.ScalePropetiesAnim.TweenCurveExitScale == null)
-                {
-                    tweenScript.animationParts.ScalePropetiesAnim.TweenCurveExitScale = new AnimationCurve();
-                }
-
-                tweenScript.animationParts.ScalePropetiesAnim.TweenCurveEnterScale = EditorGUILayout.CurveField("Start Tween Scale",
-                        tweenScript.animationParts.ScalePropetiesAnim.TweenCurveEnterScale);
-                EditorGUILayout.Space();
-                tweenScript.animationParts.ScalePropetiesAnim.TweenCurveExitScale = EditorGUILayout.CurveField("Exit Tween Scale",
-                        tweenScript.animationParts.ScalePropetiesAnim.TweenCurveExitScale);
-
-                EditorGUILayout.EndHorizontal();
+                DrawEaseFields(
+                        ref tweenScript.animationParts.ScalePropetiesAnim.EnterEaseSource,
+                        ref tweenScript.animationParts.ScalePropetiesAnim.EnterEase,
+                        ref tweenScript.animationParts.ScalePropetiesAnim.TweenCurveEnterScale,
+                        ref tweenScript.animationParts.ScalePropetiesAnim.ExitEaseSource,
+                        ref tweenScript.animationParts.ScalePropetiesAnim.ExitEase,
+                        ref tweenScript.animationParts.ScalePropetiesAnim.TweenCurveExitScale);
 
                 EditorGUILayout.Space();
             }
@@ -316,25 +362,13 @@ namespace Game.UI
                 tweenScript.animationParts.RotationPropetiesAnim.StartRot = EditorGUILayout.Vector3Field("Start Rotation", tweenScript.animationParts.RotationPropetiesAnim.StartRot);
                 tweenScript.animationParts.RotationPropetiesAnim.EndRot = EditorGUILayout.Vector3Field("End Rotation", tweenScript.animationParts.RotationPropetiesAnim.EndRot);
 
-                EditorGUILayout.BeginHorizontal();
-
-                if (tweenScript.animationParts.RotationPropetiesAnim.TweenCurveEnterRot == null)
-                {
-                    tweenScript.animationParts.RotationPropetiesAnim.TweenCurveEnterRot = new AnimationCurve();
-                }
-
-                if (tweenScript.animationParts.RotationPropetiesAnim.TweenCurveExitRot == null)
-                {
-                    tweenScript.animationParts.RotationPropetiesAnim.TweenCurveExitRot = new AnimationCurve();
-                }
-
-                tweenScript.animationParts.RotationPropetiesAnim.TweenCurveEnterRot = EditorGUILayout.CurveField("Start Tween Rotation",
-                        tweenScript.animationParts.RotationPropetiesAnim.TweenCurveEnterRot);
-                EditorGUILayout.Space();
-                tweenScript.animationParts.RotationPropetiesAnim.TweenCurveExitRot = EditorGUILayout.CurveField("Exit Tween Rotation",
-                        tweenScript.animationParts.RotationPropetiesAnim.TweenCurveExitRot);
-
-                EditorGUILayout.EndHorizontal();
+                DrawEaseFields(
+                        ref tweenScript.animationParts.RotationPropetiesAnim.EnterEaseSource,
+                        ref tweenScript.animationParts.RotationPropetiesAnim.EnterEase,
+                        ref tweenScript.animationParts.RotationPropetiesAnim.TweenCurveEnterRot,
+                        ref tweenScript.animationParts.RotationPropetiesAnim.ExitEaseSource,
+                        ref tweenScript.animationParts.RotationPropetiesAnim.ExitEase,
+                        ref tweenScript.animationParts.RotationPropetiesAnim.TweenCurveExitRot);
 
                 EditorGUILayout.Space();
             }

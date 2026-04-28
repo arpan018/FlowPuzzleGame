@@ -132,7 +132,10 @@ namespace Game.UI
             ApplyAnimationValues(0f, opening);
 
             float duration = Mathf.Max(0.01f, animationPart.GetAnimationDuration());
-            activeSequence = DOTween.Sequence();
+            // TODO: Later option - replace with direction-specific Start Delay and Exit Delay.
+            // float delay = Mathf.Max(0f, animationPart.GetAnimationDelay());
+            float delay = 0f;
+            activeSequence = DOTween.Sequence().Pause();
             activeSequence.SetTarget(targetRectTransform);
             activeSequence.SetUpdate(animationPart.UnscaledTimeAnimation);
 
@@ -140,37 +143,37 @@ namespace Game.UI
 
             if (animationPart.PositionPropetiesAnim.IsPositionEnabled())
             {
-                Vector3 endValue = opening ? animationPart.PositionPropetiesAnim.EndPos : animationPart.PositionPropetiesAnim.StartPos;
-                Tween moveTween = targetRectTransform.DOAnchorPos((Vector2)endValue, duration);
+                Tween moveTween = DOTween.To(() => 0f, value => ApplyPositionValue(value, opening), 1f, duration);
+                moveTween.SetTarget(targetRectTransform);
                 ApplyEase(moveTween,
                     opening ? animationPart.PositionPropetiesAnim.TweenCurveEnterPos : animationPart.PositionPropetiesAnim.TweenCurveExitPos,
                     opening ? animationPart.PositionPropetiesAnim.EnterEaseSource : animationPart.PositionPropetiesAnim.ExitEaseSource,
                     opening ? animationPart.PositionPropetiesAnim.EnterEase : animationPart.PositionPropetiesAnim.ExitEase);
-                activeSequence.Join(moveTween);
+                activeSequence.Insert(delay, moveTween);
                 hasTween = true;
             }
 
             if (animationPart.RotationPropetiesAnim.IsRotationEnabled())
             {
-                Vector3 endValue = opening ? animationPart.RotationPropetiesAnim.EndRot : animationPart.RotationPropetiesAnim.StartRot;
-                Tween rotateTween = targetRectTransform.DOLocalRotate(endValue, duration, RotateMode.FastBeyond360);
+                Tween rotateTween = DOTween.To(() => 0f, value => ApplyRotationValue(value, opening), 1f, duration);
+                rotateTween.SetTarget(targetRectTransform);
                 ApplyEase(rotateTween,
                     opening ? animationPart.RotationPropetiesAnim.TweenCurveEnterRot : animationPart.RotationPropetiesAnim.TweenCurveExitRot,
                     opening ? animationPart.RotationPropetiesAnim.EnterEaseSource : animationPart.RotationPropetiesAnim.ExitEaseSource,
                     opening ? animationPart.RotationPropetiesAnim.EnterEase : animationPart.RotationPropetiesAnim.ExitEase);
-                activeSequence.Join(rotateTween);
+                activeSequence.Insert(delay, rotateTween);
                 hasTween = true;
             }
 
             if (animationPart.ScalePropetiesAnim.IsScaleEnabled())
             {
-                Vector3 endValue = opening ? animationPart.ScalePropetiesAnim.EndScale : animationPart.ScalePropetiesAnim.StartScale;
-                Tween scaleTween = targetRectTransform.DOScale(endValue, duration);
+                Tween scaleTween = DOTween.To(() => 0f, value => ApplyScaleValue(value, opening), 1f, duration);
+                scaleTween.SetTarget(targetRectTransform);
                 ApplyEase(scaleTween,
                     opening ? animationPart.ScalePropetiesAnim.TweenCurveEnterScale : animationPart.ScalePropetiesAnim.TweenCurveExitScale,
                     opening ? animationPart.ScalePropetiesAnim.EnterEaseSource : animationPart.ScalePropetiesAnim.ExitEaseSource,
                     opening ? animationPart.ScalePropetiesAnim.EnterEase : animationPart.ScalePropetiesAnim.ExitEase);
-                activeSequence.Join(scaleTween);
+                activeSequence.Insert(delay, scaleTween);
                 hasTween = true;
             }
 
@@ -180,25 +183,25 @@ namespace Game.UI
 
                 if (canvasGroup != null)
                 {
-                    float endValue = opening ? animationPart.FadePropetiesAnim.GetEndFadeValue() : animationPart.FadePropetiesAnim.GetStartFadeValue();
-                    Tween fadeTween = canvasGroup.DOFade(endValue, duration);
+                    Tween fadeTween = DOTween.To(() => 0f, value => ApplyFadeValue(value, opening), 1f, duration);
+                    fadeTween.SetTarget(canvasGroup);
                     ApplyEase(fadeTween,
                         opening ? animationPart.FadePropetiesAnim.TweenCurveEnterFade : animationPart.FadePropetiesAnim.TweenCurveExitFade,
                         opening ? animationPart.FadePropetiesAnim.EnterEaseSource : animationPart.FadePropetiesAnim.ExitEaseSource,
                         opening ? animationPart.FadePropetiesAnim.EnterEase : animationPart.FadePropetiesAnim.ExitEase);
-                    activeSequence.Join(fadeTween);
+                    activeSequence.Insert(delay, fadeTween);
                     hasTween = true;
                 }
             }
 
             if (!hasTween)
             {
-                activeSequence.AppendInterval(duration);
+                activeSequence.AppendInterval(delay + duration);
             }
 
             if (!animationPart.AtomicAnimation)
             {
-                activeSequence.InsertCallback(duration * 0.9f, TriggerEnded);
+                activeSequence.InsertCallback(delay + duration * 0.9f, TriggerEnded);
             }
 
             activeSequence.OnUpdate(animationPart.FrameCheck);
@@ -222,35 +225,55 @@ namespace Game.UI
 
             if (animationPart.PositionPropetiesAnim.IsPositionEnabled())
             {
-                Vector3 startValue = opening ? animationPart.PositionPropetiesAnim.StartPos : animationPart.PositionPropetiesAnim.EndPos;
-                Vector3 endValue = opening ? animationPart.PositionPropetiesAnim.EndPos : animationPart.PositionPropetiesAnim.StartPos;
-                targetRectTransform.anchoredPosition = (Vector2)Vector3.LerpUnclamped(startValue, endValue, percentage);
+                ApplyPositionValue(percentage, opening);
             }
 
             if (animationPart.RotationPropetiesAnim.IsRotationEnabled())
             {
-                Vector3 startValue = opening ? animationPart.RotationPropetiesAnim.StartRot : animationPart.RotationPropetiesAnim.EndRot;
-                Vector3 endValue = opening ? animationPart.RotationPropetiesAnim.EndRot : animationPart.RotationPropetiesAnim.StartRot;
-                targetRectTransform.localEulerAngles = Vector3.LerpUnclamped(startValue, endValue, percentage);
+                ApplyRotationValue(percentage, opening);
             }
 
             if (animationPart.ScalePropetiesAnim.IsScaleEnabled())
             {
-                Vector3 startValue = opening ? animationPart.ScalePropetiesAnim.StartScale : animationPart.ScalePropetiesAnim.EndScale;
-                Vector3 endValue = opening ? animationPart.ScalePropetiesAnim.EndScale : animationPart.ScalePropetiesAnim.StartScale;
-                targetRectTransform.localScale = Vector3.LerpUnclamped(startValue, endValue, percentage);
+                ApplyScaleValue(percentage, opening);
             }
 
             if (animationPart.FadePropetiesAnim.IsFadeEnabled())
             {
-                CanvasGroup canvasGroup = targetRectTransform.GetComponent<CanvasGroup>();
+                ApplyFadeValue(percentage, opening);
+            }
+        }
 
-                if (canvasGroup != null)
-                {
-                    float startValue = opening ? animationPart.FadePropetiesAnim.GetStartFadeValue() : animationPart.FadePropetiesAnim.GetEndFadeValue();
-                    float endValue = opening ? animationPart.FadePropetiesAnim.GetEndFadeValue() : animationPart.FadePropetiesAnim.GetStartFadeValue();
-                    canvasGroup.alpha = Mathf.LerpUnclamped(startValue, endValue, percentage);
-                }
+        private void ApplyPositionValue(float percentage, bool opening)
+        {
+            Vector3 startValue = opening ? animationPart.PositionPropetiesAnim.StartPos : animationPart.PositionPropetiesAnim.EndPos;
+            Vector3 endValue = opening ? animationPart.PositionPropetiesAnim.EndPos : animationPart.PositionPropetiesAnim.StartPos;
+            targetRectTransform.anchoredPosition = (Vector2)Vector3.LerpUnclamped(startValue, endValue, percentage);
+        }
+
+        private void ApplyRotationValue(float percentage, bool opening)
+        {
+            Vector3 startValue = opening ? animationPart.RotationPropetiesAnim.StartRot : animationPart.RotationPropetiesAnim.EndRot;
+            Vector3 endValue = opening ? animationPart.RotationPropetiesAnim.EndRot : animationPart.RotationPropetiesAnim.StartRot;
+            targetRectTransform.localEulerAngles = Vector3.LerpUnclamped(startValue, endValue, percentage);
+        }
+
+        private void ApplyScaleValue(float percentage, bool opening)
+        {
+            Vector3 startValue = opening ? animationPart.ScalePropetiesAnim.StartScale : animationPart.ScalePropetiesAnim.EndScale;
+            Vector3 endValue = opening ? animationPart.ScalePropetiesAnim.EndScale : animationPart.ScalePropetiesAnim.StartScale;
+            targetRectTransform.localScale = Vector3.LerpUnclamped(startValue, endValue, percentage);
+        }
+
+        private void ApplyFadeValue(float percentage, bool opening)
+        {
+            CanvasGroup canvasGroup = targetRectTransform.GetComponent<CanvasGroup>();
+
+            if (canvasGroup != null)
+            {
+                float startValue = opening ? animationPart.FadePropetiesAnim.GetStartFadeValue() : animationPart.FadePropetiesAnim.GetEndFadeValue();
+                float endValue = opening ? animationPart.FadePropetiesAnim.GetEndFadeValue() : animationPart.FadePropetiesAnim.GetStartFadeValue();
+                canvasGroup.alpha = Mathf.LerpUnclamped(startValue, endValue, percentage);
             }
         }
 
@@ -603,6 +626,17 @@ namespace Game.UI
             return animationDuration;
         }
 
+        // TODO: Later option - replace with direction-specific Start Delay and Exit Delay.
+        // public void SetAnimationDelay(float delay)
+        // {
+        //     animationDelay = Mathf.Max(0f, delay);
+        // }
+        //
+        // public float GetAnimationDelay()
+        // {
+        //     return animationDelay;
+        // }
+
         public bool UnscaledTimeAnimation = false;
         public bool SaveState = false;
         public bool AtomicAnimation = false;
@@ -667,6 +701,11 @@ namespace Game.UI
         [SerializeField]
         [HideInInspector]
         private float animationDuration = 1f;
+
+        // TODO: Later option - replace with direction-specific Start Delay and Exit Delay.
+        // [SerializeField]
+        // [HideInInspector]
+        // private float animationDelay = 0f;
 
         #endregion
 
