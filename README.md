@@ -2,7 +2,11 @@
 
 Unity puzzle game where players rotate hexagonal tiles to create energy paths from sources to goals.
 
----
+
+## Important Links
+- [Gameplay Video](https://drive.google.com/file/d/14WVIE-9SQDG4Bo7Eogd6IRJh-JziilvL/view?usp=drive_link)
+- [APK Download](https://drive.google.com/file/d/16HxWSGM8C3RMVbCW9aCmav1SpJR4myus/view?usp=drive_link)
+
 
 ## 🎯 Quick Overview
 
@@ -12,7 +16,6 @@ Unity puzzle game where players rotate hexagonal tiles to create energy paths fr
 **Total Levels:** 10  
 **External Assets:** DOTween • Amplitude SDK • Epic Toon FX • Modern Procedural UI Kit • Naughty Attributes
 
----
 
 ## 🎮 Core Systems
 
@@ -35,8 +38,6 @@ Unity puzzle game where players rotate hexagonal tiles to create energy paths fr
 - Particle effects (goal activation, star burst, celebration)
 - Camera zoom-out effect on level complete
 - Amplitude analytics (EU server): `game_started`, `level_started`, `level_completed`
-
----
 
 ## ⚙️ Optimizations
 
